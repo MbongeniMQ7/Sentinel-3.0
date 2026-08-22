@@ -6,7 +6,6 @@ const NAV_LINKS = [
   { label: "Platform",     href: "#platform" },
   { label: "Fatigue",      href: "#agents" },
   { label: "How It Works", href: "#workflow" },
-  { label: "Wristband",    href: "#integrations" },
 ]
 
 const NAV_STYLE = {
