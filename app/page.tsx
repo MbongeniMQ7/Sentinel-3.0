@@ -140,8 +140,8 @@ export default function SentinelPage() {
             className="font-light text-[#111] tracking-tight mb-6 sm:mb-8 lg:mb-10"
             style={{
               fontFamily: '"IBM Plex Sans", sans-serif',
-              fontSize: "clamp(2rem, min(7vw, 8.5vh), 5.5rem)",
-              lineHeight: 1.02,
+              fontSize: "clamp(2.5rem, min(9vw, 7.2vh), 4.75rem)",
+              lineHeight: 1.04,
               opacity: heroReady ? 1 : 0,
               filter: heroReady ? "blur(0px)" : "blur(24px)",
               transform: heroReady ? "translateY(0px)" : "translateY(32px)",
