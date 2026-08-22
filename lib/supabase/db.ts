@@ -181,6 +181,17 @@ export async function createEmployee(input: {
   return data
 }
 
+export async function resendInvite(employeeId: string) {
+  const { data, error } = await supabase.functions.invoke("send-invite", { body: { employee_id: employeeId } })
+  if (error) throw new Error(error.message || "Could not send the invite email.")
+  return data
+}
+
+export async function deleteEmployee(employeeId: string) {
+  const { error } = await supabase.from("employees").delete().eq("id", employeeId)
+  if (error) throw error
+}
+
 // ─── Shifts ─────────────────────────────────────────────────────────────────
 export async function listShifts(): Promise<ShiftRow[]> {
   const { data } = await supabase

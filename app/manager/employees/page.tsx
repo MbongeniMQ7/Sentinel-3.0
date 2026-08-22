@@ -1,12 +1,21 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Users, Plus, Search, Download } from "lucide-react"
+import { Users, Plus, Search, Download, Send, Trash2 } from "lucide-react"
 import { PageHeader, DataTable, EmptyState, Badge } from "@/components/app/primitives"
 import { Button, Input, Select } from "@/components/app/controls"
 import { AddEmployeeModal } from "@/components/app/add-employee-modal"
+import { Modal } from "@/components/app/modal"
 import { Toast } from "@/components/app/toast"
-import { listEmployees, listSites, subscribeTable, type EmployeeRow, type Site } from "@/lib/supabase/db"
+import {
+  listEmployees,
+  listSites,
+  resendInvite,
+  deleteEmployee,
+  subscribeTable,
+  type EmployeeRow,
+  type Site,
+} from "@/lib/supabase/db"
 
 export default function ManagerEmployeesPage() {
   const [open, setOpen] = useState(false)
@@ -15,9 +24,38 @@ export default function ManagerEmployeesPage() {
   const [siteFilter, setSiteFilter] = useState("")
   const [rows, setRows] = useState<EmployeeRow[]>([])
   const [sites, setSites] = useState<Site[]>([])
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [toDelete, setToDelete] = useState<EmployeeRow | null>(null)
 
   function load() {
     listEmployees().then(setRows).catch(() => setRows([]))
+  }
+
+  async function handleResend(emp: EmployeeRow) {
+    setBusyId(emp.id)
+    try {
+      await resendInvite(emp.id)
+      setToast(`Invite re-sent to ${emp.email}.`)
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Could not resend the invite.")
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function handleDelete() {
+    if (!toDelete) return
+    setBusyId(toDelete.id)
+    try {
+      await deleteEmployee(toDelete.id)
+      setToast(`${toDelete.full_name || "Employee"} removed.`)
+      setToDelete(null)
+      load()
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Could not remove the employee.")
+    } finally {
+      setBusyId(null)
+    }
   }
 
   useEffect(() => {
@@ -99,7 +137,29 @@ export default function ManagerEmployeesPage() {
                   <td className="px-4 py-3">
                     <Badge tone={r.user_id ? "navy" : "amber"}>{r.user_id ? "Active login" : "Invited"}</Badge>
                   </td>
-                  <td className="px-4 py-3 text-slate-400">—</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={busyId === r.id}
+                        onClick={() => handleResend(r)}
+                        title="Resend invite email"
+                      >
+                        <Send className="h-4 w-4" /> Resend
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={busyId === r.id}
+                        onClick={() => setToDelete(r)}
+                        title="Delete employee"
+                        className="text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" /> Delete
+                      </Button>
+                    </div>
+                  </td>
                 </tr>
               ))
             : undefined
@@ -107,6 +167,28 @@ export default function ManagerEmployeesPage() {
       />
 
       <AddEmployeeModal open={open} onClose={() => setOpen(false)} onSubmitted={() => setToast("Employee added.")} />
+
+      <Modal
+        open={!!toDelete}
+        onClose={() => setToDelete(null)}
+        title="Remove employee"
+        description={`This permanently removes ${toDelete?.full_name || toDelete?.email || "this employee"} and revokes their access. This can't be undone.`}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setToDelete(null)} disabled={busyId === toDelete?.id}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDelete} disabled={busyId === toDelete?.id}>
+              {busyId === toDelete?.id ? "Removing…" : "Remove"}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-slate-600">
+          {toDelete?.email} will no longer appear in your workforce or receive Sentinel-AI access.
+        </p>
+      </Modal>
+
       <Toast message={toast} onDismiss={() => setToast(null)} />
     </>
   )
