@@ -17,3 +17,6 @@ node_modules
 .vercel
 
 .vercel
+
+# Supabase local
+supabase/.temp/
