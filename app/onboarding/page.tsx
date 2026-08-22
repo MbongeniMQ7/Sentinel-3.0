@@ -37,7 +37,10 @@ export default function OnboardingPage() {
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto flex max-w-3xl flex-col px-4 py-10 sm:py-16">
         <header className="mb-8">
-          <span className="text-sm font-semibold uppercase tracking-widest text-[#0f2a4a]">SentinelAI</span>
+          <span className="flex items-center gap-2">
+            <img src="/images/logo.png" alt="Sentinel-AI" className="h-7 w-7 object-contain" />
+            <span className="text-sm font-semibold uppercase tracking-widest text-[#0f2a4a]">Sentinel-AI</span>
+          </span>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Set up your workspace</h1>
           <p className="mt-1 text-sm text-slate-500">A few steps to get your workforce ready.</p>
         </header>

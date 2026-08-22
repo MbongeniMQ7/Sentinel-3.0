@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ShieldCheck, ArrowLeft, MailCheck } from "lucide-react"
+import { ArrowLeft, MailCheck } from "lucide-react"
 import { Button, Input, Field } from "@/components/app/controls"
 
 export default function ForgotPasswordPage() {
@@ -22,10 +22,8 @@ export default function ForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6 py-12">
       <div className="w-full max-w-sm">
         <Link href="/" className="mb-8 flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0f2a4a] text-white">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-          <span className="text-sm font-semibold text-slate-900">SentinelAI Workforce</span>
+          <img src="/images/logo.png" alt="Sentinel-AI" className="h-9 w-9 object-contain" />
+          <span className="text-sm font-semibold text-slate-900">Sentinel-AI Workforce</span>
         </Link>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6">

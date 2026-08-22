@@ -31,7 +31,10 @@ export function MobileNav() {
           className="flex items-center justify-between px-5 py-3 rounded-2xl border border-black/[0.06]"
           style={NAV_STYLE}
         >
-          <span className="font-pixel text-xs tracking-[0.25em] text-black/70">SENTINELAI</span>
+          <span className="flex items-center gap-2">
+            <img src="/images/logo.png" alt="Sentinel-AI" className="h-6 w-6 object-contain" />
+            <span className="font-pixel text-xs tracking-[0.25em] text-black/70">SENTINEL-AI</span>
+          </span>
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-7" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>

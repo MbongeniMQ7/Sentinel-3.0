@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ShieldCheck, ArrowRight } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { Button, Input, Field } from "@/components/app/controls"
 import { ROLE_META, type Role } from "@/components/app/nav-config"
 
@@ -30,11 +30,11 @@ export default function LoginPage() {
       {/* Left — brand panel */}
       <div className="relative hidden flex-col justify-between bg-[#0f2a4a] p-10 text-white lg:flex">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
-            <ShieldCheck className="h-5 w-5" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white p-1">
+            <img src="/images/logo.png" alt="Sentinel-AI" className="h-full w-full object-contain" />
           </div>
           <div className="leading-tight">
-            <span className="block text-sm font-semibold">SentinelAI</span>
+            <span className="block text-sm font-semibold">Sentinel-AI</span>
             <span className="block text-[10px] uppercase tracking-widest text-white/50">Workforce</span>
           </div>
         </Link>
@@ -54,10 +54,8 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0f2a4a] text-white">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <span className="text-sm font-semibold text-slate-900">SentinelAI Workforce</span>
+              <img src="/images/logo.png" alt="Sentinel-AI" className="h-9 w-9 object-contain" />
+              <span className="text-sm font-semibold text-slate-900">Sentinel-AI Workforce</span>
             </Link>
           </div>
 

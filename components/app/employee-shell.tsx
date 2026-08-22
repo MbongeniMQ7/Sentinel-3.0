@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ShieldCheck, Wrench, Watch } from "lucide-react"
+import { Wrench, Watch } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { EMPLOYEE_NAV } from "./nav-config"
 import { RoleSwitcher } from "./role-switcher"
@@ -15,10 +15,8 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
       {/* Top bar */}
       <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0f2a4a] text-white">
-            <ShieldCheck className="h-4 w-4" />
-          </div>
-          <span className="text-sm font-semibold tracking-tight text-slate-900">SentinelAI</span>
+          <img src="/images/logo.png" alt="Sentinel-AI" className="h-8 w-8 object-contain" />
+          <span className="text-sm font-semibold tracking-tight text-slate-900">Sentinel-AI</span>
         </Link>
         <div className="flex items-center gap-1.5">
           <Link

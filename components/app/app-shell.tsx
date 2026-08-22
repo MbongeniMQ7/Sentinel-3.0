@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X, Search, Bell, ShieldCheck } from "lucide-react"
+import { Menu, X, Search, Bell } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { NavGroup, Role } from "./nav-config"
 import { RoleSwitcher } from "./role-switcher"
@@ -12,11 +12,9 @@ import { CommandPalette } from "./command-palette"
 function Brand() {
   return (
     <Link href="/" className="flex items-center gap-2 px-1">
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0f2a4a] text-white">
-        <ShieldCheck className="h-4 w-4" />
-      </div>
+      <img src="/images/logo.png" alt="Sentinel-AI" className="h-8 w-8 object-contain" />
       <div className="leading-tight">
-        <span className="block text-sm font-semibold tracking-tight text-slate-900">SentinelAI</span>
+        <span className="block text-sm font-semibold tracking-tight text-slate-900">Sentinel-AI</span>
         <span className="block text-[10px] uppercase tracking-widest text-slate-400">Workforce</span>
       </div>
     </Link>

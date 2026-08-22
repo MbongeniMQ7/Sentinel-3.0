@@ -627,7 +627,10 @@ export default function SentinelPage() {
       {/* ── FOOTER ────────────────────────────────────────────────────────── */}
       <footer className="py-10 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <span className="font-pixel text-xs tracking-[0.25em] text-black/50">SENTINELAI</span>
+          <span className="flex items-center gap-2">
+            <img src="/images/logo.png" alt="Sentinel-AI" className="h-6 w-6 object-contain" />
+            <span className="font-pixel text-xs tracking-[0.25em] text-black/50">SENTINEL-AI</span>
+          </span>
 
           {/* Nav sections */}
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
