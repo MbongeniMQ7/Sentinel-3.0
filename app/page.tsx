@@ -232,7 +232,7 @@ export default function SentinelPage() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 10h8M8 14h5"/></svg>
               </div>
               <h3 className="text-lg font-light mb-2">Activity Patterns</h3>
-              <p className="text-sm text-black/45 leading-relaxed">Understand operational patterns across teams, sites and shifts — grounded in real workforce activity.</p>
+              <p className="text-sm text-black/45 leading-relaxed">Understand operational patterns across teams, sites and shifts, grounded in real workforce activity.</p>
             </BentoCard>
 
             <BentoCard className="col-span-12 md:col-span-4 p-8 min-h-[200px]" delay={200}>
@@ -258,7 +258,7 @@ export default function SentinelPage() {
               </RevealText>
             </div>
             <p className="text-sm text-black/45 leading-relaxed max-w-xs">
-              Biometric indicators from the smart wristband combine with attendance and activity to surface fatigue risk — low, moderate or high — across your workforce.
+              Biometric indicators from the smart wristband combine with attendance and activity to surface fatigue risk (low, moderate or high) across your workforce.
             </p>
           </div>
 
@@ -280,9 +280,9 @@ export default function SentinelPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3" onMouseMove={handleMouse}>
             {[
               { n: "01", title: "Wear",     desc: "Employees wear the smart wristband and clock in. Attendance and working hours are captured automatically.", delay: 0,   Icon: Watch },
-              { n: "02", title: "Sense",    desc: "Biometric indicators — heart rate, HRV, temperature and movement — stream from the device securely.", delay: 80,  Icon: Activity },
+              { n: "02", title: "Sense",    desc: "Heart rate, HRV, temperature and movement stream from the device securely.", delay: 80,  Icon: Activity },
               { n: "03", title: "Analyze",  desc: "SentinelAI combines signals with attendance and activity to produce a fatigue risk score.", delay: 140, Icon: Gauge },
-              { n: "04", title: "Act",      desc: "Managers see risk and workforce insights in real time — and make better operational decisions.", delay: 200, Icon: LayoutDashboard },
+              { n: "04", title: "Act",      desc: "Managers see risk and workforce insights in real time to make better operational decisions.", delay: 200, Icon: LayoutDashboard },
             ].map((step) => (
               <BentoCard key={step.n} className="relative overflow-hidden flex flex-col min-h-[320px]" delay={step.delay}>
                 {/* Themed icon panel at top — fades out before the bottom edge */}
@@ -322,7 +322,7 @@ export default function SentinelPage() {
               </RevealText>
             </div>
             <p className="text-sm text-black/45 leading-relaxed max-w-xs">
-              The SentinelAI smart wristband captures biometric indicators and syncs securely — no manual input, no guesswork. Battery, connection and sensor health at a glance.
+              The SentinelAI smart wristband captures biometric indicators and syncs securely, with no manual input and no guesswork. Battery, connection and sensor health at a glance.
             </p>
           </div>
 
@@ -346,7 +346,7 @@ export default function SentinelPage() {
               >
                 <Tag>DEVICE</Tag>
                 <h3 className="mt-3 text-lg font-light mb-2">Live sensor readings</h3>
-                <p className="text-xs text-black/45 leading-relaxed mb-4">Heart rate, HRV, temperature and movement — synced from each wristband.</p>
+                <p className="text-xs text-black/45 leading-relaxed mb-4">Heart rate, HRV, temperature and movement, synced from each wristband.</p>
                 <div className="bg-black/[0.05] rounded-lg border border-black/[0.07] p-3 font-mono text-[11px] text-black/50 leading-relaxed">
                   <span className="text-black/25">// device signal</span><br />
                   <span className="text-blue-600/70">wristband</span>{".sync({"}<br />
@@ -418,7 +418,7 @@ export default function SentinelPage() {
                 {"Your workforce,\nunderstood in real time."}
               </RevealText>
               <p className="mt-6 text-base text-black/40 leading-relaxed max-w-sm">
-                Attendance, working hours, activity patterns and fatigue risk — unified into one operational view for owners and managers.
+                Attendance, working hours, activity patterns and fatigue risk, unified into one operational view for owners and managers.
               </p>
               <div className="mt-10 flex items-end gap-2">
                 <LiveAgentCounter />
