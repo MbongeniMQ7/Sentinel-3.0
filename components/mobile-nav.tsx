@@ -49,6 +49,9 @@ export function MobileNav() {
           </div>
 
           <div className="flex items-center gap-2">
+            <a href="/apply" className="text-[11px] px-4 py-2 rounded-xl bg-[#111] text-white hover:bg-black transition-all duration-200 tracking-wide hidden md:block" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
+              PARTNER WITH US
+            </a>
             <a href="/login" className="text-[11px] px-4 py-2 rounded-xl border border-black/10 text-black/60 hover:text-black hover:border-black/20 hover:bg-black/[0.03] transition-all duration-200 tracking-wide hidden md:block" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
               SIGN IN
             </a>
@@ -105,7 +108,10 @@ export function MobileNav() {
                 {l.label}
               </a>
             ))}
-            <div className="mt-1 px-2 pb-1">
+            <div className="mt-1 px-2 pb-1 flex flex-col gap-2">
+              <a href="/apply" onClick={close} className="block text-center w-full text-[11px] px-4 py-2.5 rounded-xl bg-[#111] text-white hover:bg-black transition-all duration-200 tracking-wide" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
+                PARTNER WITH US
+              </a>
               <a href="/login" onClick={close} className="block text-center w-full text-[11px] px-4 py-2.5 rounded-xl border border-black/10 text-black/60 hover:text-black hover:border-black/20 hover:bg-black/[0.03] transition-all duration-200 tracking-wide" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
                 SIGN IN
               </a>

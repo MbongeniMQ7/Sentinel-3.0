@@ -18,6 +18,7 @@ import {
   UserRound,
   Network,
   ClipboardList,
+  Inbox,
 } from "lucide-react"
 
 export type Role = "owner" | "manager" | "employee"
@@ -41,6 +42,10 @@ export const OWNER_NAV: NavGroup[] = [
   {
     label: "Intelligence",
     items: [{ label: "Analytics", href: "/owner/analytics", icon: BarChart3 }],
+  },
+  {
+    label: "Growth",
+    items: [{ label: "Applications", href: "/owner/applications", icon: Inbox }],
   },
   {
     label: "Operations",

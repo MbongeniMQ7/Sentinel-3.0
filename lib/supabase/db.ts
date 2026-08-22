@@ -548,6 +548,68 @@ export async function saveOnboarding(payload: OnboardingPayload) {
   return { organization_id }
 }
 
+// ─── Company applications (public intake) ────────────────────────────────────
+export type ApplicationType = "join" | "acquire"
+export type ApplicationStatus = "new" | "reviewing" | "contacted" | "approved" | "rejected"
+
+export type ApplicationRow = {
+  id: string
+  company_name: string
+  contact_name: string
+  contact_email: string
+  contact_phone: string | null
+  industry: string | null
+  country: string | null
+  company_size: string | null
+  website: string | null
+  application_type: ApplicationType
+  message: string | null
+  status: ApplicationStatus
+  created_at: string
+}
+
+export type ApplicationInput = {
+  company_name: string
+  contact_name: string
+  contact_email: string
+  contact_phone?: string
+  industry?: string
+  country?: string
+  company_size?: string
+  website?: string
+  application_type: ApplicationType
+  message?: string
+}
+
+export async function submitApplication(input: ApplicationInput) {
+  const { error } = await supabase.from("company_applications").insert({
+    company_name: input.company_name.trim(),
+    contact_name: input.contact_name.trim(),
+    contact_email: input.contact_email.trim().toLowerCase(),
+    contact_phone: input.contact_phone?.trim() || null,
+    industry: input.industry?.trim() || null,
+    country: input.country?.trim() || null,
+    company_size: input.company_size?.trim() || null,
+    website: input.website?.trim() || null,
+    application_type: input.application_type,
+    message: input.message?.trim() || null,
+  })
+  if (error) throw error
+}
+
+export async function listApplications(): Promise<ApplicationRow[]> {
+  const { data } = await supabase
+    .from("company_applications")
+    .select("*")
+    .order("created_at", { ascending: false })
+  return (data as unknown as ApplicationRow[]) ?? []
+}
+
+export async function updateApplicationStatus(id: string, status: ApplicationStatus) {
+  const { error } = await supabase.from("company_applications").update({ status }).eq("id", id)
+  if (error) throw error
+}
+
 // ─── Realtime ───────────────────────────────────────────────────────────────
 export function subscribeTable(table: string, onChange: () => void) {
   const channel = supabase
