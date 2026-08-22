@@ -3,11 +3,12 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X, Search, Bell } from "lucide-react"
+import { Menu, X, Search, Bell, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { NavGroup, Role } from "./nav-config"
 import { RoleSwitcher } from "./role-switcher"
 import { CommandPalette } from "./command-palette"
+import { useAuth } from "@/lib/supabase/use-auth"
 
 function Brand() {
   return (
@@ -67,6 +68,7 @@ export function AppShell({
   children: React.ReactNode
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { initial, displayName, signOut } = useAuth()
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -124,9 +126,20 @@ export function AppShell({
             >
               <Bell className="h-4.5 w-4.5" />
             </button>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
-              {role.charAt(0).toUpperCase()}
+            <div
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0f2a4a] text-xs font-semibold text-white"
+              title={displayName}
+            >
+              {initial || role.charAt(0).toUpperCase()}
             </div>
+            <button
+              onClick={signOut}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+              aria-label="Sign out"
+              title="Sign out"
+            >
+              <LogOut className="h-4.5 w-4.5" />
+            </button>
           </div>
         </header>
 

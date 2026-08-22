@@ -1,7 +1,22 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Clock, BarChart3 } from "lucide-react"
 import { MetricCard, SectionCard, EmptyState } from "@/components/app/primitives"
+import { myHoursSummary } from "@/lib/supabase/db"
+
+function fmt(h: number) {
+  const totalMin = Math.round(h * 60)
+  return `${Math.floor(totalMin / 60)}h ${String(totalMin % 60).padStart(2, "0")}m`
+}
 
 export default function EmployeeHoursPage() {
+  const [hours, setHours] = useState({ today: 0, week: 0, month: 0 })
+
+  useEffect(() => {
+    myHoursSummary().then(setHours).catch(() => {})
+  }, [])
+
   return (
     <div className="grid gap-4">
       <div>
@@ -10,9 +25,9 @@ export default function EmployeeHoursPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <MetricCard label="Today" value="0h" icon={Clock} />
-        <MetricCard label="This Week" value="0h" icon={Clock} />
-        <MetricCard label="This Month" value="0h" icon={Clock} />
+        <MetricCard label="Today" value={fmt(hours.today)} icon={Clock} />
+        <MetricCard label="This Week" value={fmt(hours.week)} icon={Clock} />
+        <MetricCard label="This Month" value={fmt(hours.month)} icon={Clock} />
       </div>
 
       <SectionCard title="Hours Over Time">

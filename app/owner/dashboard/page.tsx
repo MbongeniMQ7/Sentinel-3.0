@@ -1,11 +1,11 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import {
   Users,
   Activity,
   Clock,
-  Wallet,
   ShieldAlert,
   Plus,
   Building2,
@@ -16,8 +16,22 @@ import {
 } from "lucide-react"
 import { PageHeader, MetricCard, SectionCard, EmptyState } from "@/components/app/primitives"
 import { Button } from "@/components/app/controls"
+import { ownerMetrics, subscribeTable } from "@/lib/supabase/db"
 
 export default function OwnerDashboard() {
+  const [m, setM] = useState({ employees: 0, managers: 0, sites: 0, activeNow: 0, hoursWorked: 0, fatigueAlerts: 0 })
+
+  useEffect(() => {
+    const load = () => ownerMetrics().then(setM).catch(() => {})
+    load()
+    const a = subscribeTable("attendance_records", load)
+    const b = subscribeTable("employees", load)
+    return () => {
+      a()
+      b()
+    }
+  }, [])
+
   return (
     <>
       <PageHeader
@@ -33,11 +47,11 @@ export default function OwnerDashboard() {
       />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <MetricCard label="Employees" value={0} icon={Users} />
-        <MetricCard label="Active Now" value={0} icon={Activity} />
-        <MetricCard label="Hours Worked" value={0} icon={Clock} />
-        <MetricCard label="Estimated Earnings" value="R0.00" icon={Wallet} />
-        <MetricCard label="Fatigue Alerts" value={0} icon={ShieldAlert} />
+        <MetricCard label="Employees" value={m.employees} icon={Users} />
+        <MetricCard label="Active Now" value={m.activeNow} icon={Activity} />
+        <MetricCard label="Hours Worked" value={m.hoursWorked.toFixed(1)} icon={Clock} hint="Today" />
+        <MetricCard label="Sites" value={m.sites} icon={Building2} />
+        <MetricCard label="Fatigue Alerts" value={m.fatigueAlerts} icon={ShieldAlert} />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">

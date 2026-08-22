@@ -1,16 +1,41 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Users, Plus, Search, Download } from "lucide-react"
-import { PageHeader, DataTable, EmptyState } from "@/components/app/primitives"
+import { PageHeader, DataTable, EmptyState, Badge } from "@/components/app/primitives"
 import { Button, Input, Select } from "@/components/app/controls"
 import { AddEmployeeModal } from "@/components/app/add-employee-modal"
 import { Toast } from "@/components/app/toast"
+import { listEmployees, listSites, subscribeTable, type EmployeeRow, type Site } from "@/lib/supabase/db"
 
 export default function OwnerEmployeesPage() {
   const [open, setOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [query, setQuery] = useState("")
+  const [siteFilter, setSiteFilter] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
+  const [rows, setRows] = useState<EmployeeRow[]>([])
+  const [sites, setSites] = useState<Site[]>([])
+
+  function load() {
+    listEmployees().then(setRows).catch(() => setRows([]))
+  }
+
+  useEffect(() => {
+    load()
+    listSites().then(setSites).catch(() => setSites([]))
+    return subscribeTable("employees", load)
+  }, [])
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return rows.filter((r) => {
+      if (q && !`${r.full_name ?? ""} ${r.email ?? ""}`.toLowerCase().includes(q)) return false
+      if (siteFilter && r.site_id !== siteFilter) return false
+      if (statusFilter && r.status !== statusFilter) return false
+      return true
+    })
+  }, [rows, query, siteFilter, statusFilter])
 
   return (
     <>
@@ -19,7 +44,7 @@ export default function OwnerEmployeesPage() {
         description="Manage your workforce across every site."
         actions={
           <>
-            <Button variant="secondary">
+            <Button variant="secondary" onClick={() => setToast("Export coming soon.")}>
               <Download className="h-4 w-4" /> Export
             </Button>
             <Button onClick={() => setOpen(true)}>
@@ -40,19 +65,24 @@ export default function OwnerEmployeesPage() {
           />
         </div>
         <div className="flex gap-2">
-          <Select className="w-36" defaultValue="">
+          <Select className="w-36" value={siteFilter} onChange={(e) => setSiteFilter(e.target.value)}>
             <option value="">All sites</option>
+            {sites.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
           </Select>
-          <Select className="w-36" defaultValue="">
+          <Select className="w-36" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">All statuses</option>
-            <option>Active</option>
-            <option>Inactive</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </Select>
         </div>
       </div>
 
       <DataTable
-        columns={["Employee", "Site", "Status", "Shift", "Fatigue", "Actions"]}
+        columns={["Employee", "Site", "Status", "Role", "Linked", "Actions"]}
         empty={
           <EmptyState
             icon={Users}
@@ -65,9 +95,30 @@ export default function OwnerEmployeesPage() {
             }
           />
         }
+        rows={
+          filtered.length
+            ? filtered.map((r) => (
+                <tr key={r.id} className="border-b border-slate-50 last:border-0">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-slate-900">{r.full_name || "—"}</div>
+                    <div className="text-xs text-slate-400">{r.email}</div>
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">{r.site?.name || "Unassigned"}</td>
+                  <td className="px-4 py-3">
+                    <Badge tone={r.status === "active" ? "green" : "slate"}>{r.status}</Badge>
+                  </td>
+                  <td className="px-4 py-3 capitalize text-slate-600">{r.invited_role}</td>
+                  <td className="px-4 py-3">
+                    <Badge tone={r.user_id ? "navy" : "amber"}>{r.user_id ? "Active login" : "Invited"}</Badge>
+                  </td>
+                  <td className="px-4 py-3 text-slate-400">—</td>
+                </tr>
+              ))
+            : undefined
+        }
       />
 
-      <AddEmployeeModal open={open} onClose={() => setOpen(false)} onSubmitted={() => setToast("Employee added to this session.")} />
+      <AddEmployeeModal open={open} onClose={() => setOpen(false)} onSubmitted={() => setToast("Employee added.")} />
       <Toast message={toast} onDismiss={() => setToast(null)} />
     </>
   )

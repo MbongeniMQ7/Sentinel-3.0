@@ -2,13 +2,15 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Wrench, Watch } from "lucide-react"
+import { Wrench, Watch, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { EMPLOYEE_NAV } from "./nav-config"
 import { RoleSwitcher } from "./role-switcher"
+import { useAuth } from "@/lib/supabase/use-auth"
 
 export function EmployeeShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { signOut } = useAuth()
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -39,6 +41,13 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
           >
             <Watch className="h-4.5 w-4.5" />
           </Link>
+          <button
+            onClick={signOut}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100"
+            aria-label="Sign out"
+          >
+            <LogOut className="h-4.5 w-4.5" />
+          </button>
         </div>
       </header>
 

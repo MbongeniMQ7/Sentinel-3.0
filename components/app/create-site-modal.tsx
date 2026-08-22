@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Modal } from "./modal"
 import { Button, Input, Select, Field } from "./controls"
+import { createSite } from "@/lib/supabase/db"
 
 export function CreateSiteModal({
   open,
@@ -17,6 +18,7 @@ export function CreateSiteModal({
   const [location, setLocation] = useState("")
   const [timezone, setTimezone] = useState("Africa/Johannesburg")
   const [error, setError] = useState<string>()
+  const [saving, setSaving] = useState(false)
 
   function reset() {
     setName("")
@@ -25,13 +27,20 @@ export function CreateSiteModal({
     setError(undefined)
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) return setError("Site name is required")
-    // Frontend-only: no data is sent anywhere.
-    reset()
-    onClose()
-    onSubmitted?.()
+    setSaving(true)
+    try {
+      await createSite({ name: name.trim(), location: location.trim() || undefined, timezone })
+      reset()
+      onClose()
+      onSubmitted?.()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not create site.")
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -42,7 +51,7 @@ export function CreateSiteModal({
         onClose()
       }}
       title="Create Site"
-      description="Add an operating location. This is a frontend demonstration — nothing is saved."
+      description="Add an operating location for your organization."
       footer={
         <>
           <Button
@@ -54,8 +63,8 @@ export function CreateSiteModal({
           >
             Cancel
           </Button>
-          <Button type="submit" form="create-site-form">
-            Create Site
+          <Button type="submit" form="create-site-form" disabled={saving}>
+            {saving ? "Creating…" : "Create Site"}
           </Button>
         </>
       }

@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Modal } from "./modal"
 import { Button, Input, Select, Field } from "./controls"
+import { createEmployee, listSites, type Site } from "@/lib/supabase/db"
 
 export function AddEmployeeModal({
   open,
@@ -15,19 +16,25 @@ export function AddEmployeeModal({
 }) {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
-  const [role, setRole] = useState("Employee")
+  const [role, setRole] = useState<"employee" | "manager">("employee")
   const [site, setSite] = useState("")
-  const [errors, setErrors] = useState<{ name?: string; email?: string }>({})
+  const [sites, setSites] = useState<Site[]>([])
+  const [errors, setErrors] = useState<{ name?: string; email?: string; form?: string }>({})
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (open) listSites().then(setSites).catch(() => setSites([]))
+  }, [open])
 
   function reset() {
     setName("")
     setEmail("")
-    setRole("Employee")
+    setRole("employee")
     setSite("")
     setErrors({})
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
     const next: typeof errors = {}
     if (!name.trim()) next.name = "Full name is required"
@@ -35,10 +42,17 @@ export function AddEmployeeModal({
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) next.email = "Enter a valid email"
     setErrors(next)
     if (Object.keys(next).length > 0) return
-    // Frontend-only: no data is sent anywhere.
-    reset()
-    onClose()
-    onSubmitted?.()
+    setSaving(true)
+    try {
+      await createEmployee({ full_name: name.trim(), email: email.trim(), invited_role: role, site_id: site || null })
+      reset()
+      onClose()
+      onSubmitted?.()
+    } catch (err) {
+      setErrors({ form: err instanceof Error ? err.message : "Could not add employee." })
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -49,7 +63,7 @@ export function AddEmployeeModal({
         onClose()
       }}
       title="Add Employee"
-      description="Enter the employee's details. This is a frontend demonstration — nothing is saved."
+      description="They'll be able to sign in with this email and are linked automatically on first login."
       footer={
         <>
           <Button
@@ -61,8 +75,8 @@ export function AddEmployeeModal({
           >
             Cancel
           </Button>
-          <Button type="submit" form="add-employee-form">
-            Add Employee
+          <Button type="submit" form="add-employee-form" disabled={saving}>
+            {saving ? "Adding…" : "Add Employee"}
           </Button>
         </>
       }
@@ -76,17 +90,23 @@ export function AddEmployeeModal({
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Role">
-            <Select value={role} onChange={(e) => setRole(e.target.value)}>
-              <option>Employee</option>
-              <option>Manager</option>
+            <Select value={role} onChange={(e) => setRole(e.target.value as "employee" | "manager")}>
+              <option value="employee">Employee</option>
+              <option value="manager">Manager</option>
             </Select>
           </Field>
-          <Field label="Site" hint="No sites created yet">
+          <Field label="Site" hint={sites.length ? undefined : "No sites created yet"}>
             <Select value={site} onChange={(e) => setSite(e.target.value)}>
               <option value="">Unassigned</option>
+              {sites.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
             </Select>
           </Field>
         </div>
+        {errors.form && <p className="text-xs text-red-500">{errors.form}</p>}
       </form>
     </Modal>
   )
