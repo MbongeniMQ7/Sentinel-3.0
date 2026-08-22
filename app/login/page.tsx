@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowRight } from "lucide-react"
-import { Button, Input, Field } from "@/components/app/controls"
+import { WorkforceGrid } from "@/components/workforce-grid"
 import { ROLE_META, type Role } from "@/components/app/nav-config"
 
 export default function LoginPage() {
@@ -26,88 +26,143 @@ export default function LoginPage() {
   const roles: Role[] = ["owner", "manager", "employee"]
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      {/* Left — brand panel */}
-      <div className="relative hidden flex-col justify-between bg-[#0f2a4a] p-10 text-white lg:flex">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white p-1">
-            <img src="/images/logo.png" alt="Sentinel-AI" className="h-full w-full object-contain" />
-          </div>
-          <div className="leading-tight">
-            <span className="block text-sm font-semibold">Sentinel-AI</span>
-            <span className="block text-[10px] uppercase tracking-widest text-white/50">Workforce</span>
-          </div>
+    <div className="grid min-h-screen bg-[#F5F4F0] font-sans text-[#111] antialiased lg:grid-cols-2">
+      {/* Left — animated brand panel (matches landing hero) */}
+      <div className="relative hidden overflow-hidden lg:block">
+        <div className="absolute inset-0">
+          <WorkforceGrid />
+        </div>
+
+        {/* Progressive light gradient rising from bottom */}
+        <div
+          className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
+          style={{
+            height: "70%",
+            background:
+              "linear-gradient(to top, #F5F4F0 0%, #F5F4F0 16%, rgba(245,244,240,0.82) 38%, rgba(245,244,240,0.4) 62%, transparent 100%)",
+          }}
+        />
+        <div
+          className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
+          style={{
+            height: "45%",
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
+            maskImage: "linear-gradient(to top, black 0%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(to top, black 0%, transparent 100%)",
+          }}
+        />
+
+        {/* Brand */}
+        <Link href="/" className="absolute left-10 top-10 z-30 flex items-center gap-2">
+          <img src="/images/logo.png" alt="Sentinel-AI" className="h-7 w-7 object-contain" />
+          <span className="font-pixel text-xs tracking-[0.25em] text-black/60">SENTINEL-AI</span>
         </Link>
-        <div>
-          <h1 className="max-w-sm text-3xl font-light leading-tight">
-            See your workforce clearly. Protect your people intelligently.
+
+        {/* Hero copy anchored bottom-left */}
+        <div className="absolute inset-x-0 bottom-0 z-30 px-10 pb-12">
+          <h1
+            className="max-w-md font-light tracking-tight text-[#111]"
+            style={{ fontFamily: '"IBM Plex Sans", sans-serif', fontSize: "clamp(2rem, 3.4vw, 3.25rem)", lineHeight: 1.05 }}
+          >
+            See your workforce clearly.
           </h1>
-          <p className="mt-4 max-w-sm text-sm text-white/60">
+          <p className="mt-4 max-w-sm text-sm leading-relaxed text-black/45">
             Attendance, working hours and fatigue indicators — unified into one operational platform.
           </p>
+          <p className="mt-8 text-xs tracking-widest text-black/25">© 2026 SENTINEL-AI WORKFORCE</p>
         </div>
-        <p className="text-xs text-white/40">© 2026 SentinelAI Workforce</p>
       </div>
 
       {/* Right — form */}
-      <div className="flex items-center justify-center bg-white px-6 py-12">
+      <div className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
-          <div className="mb-8 lg:hidden">
+          {/* Mobile brand */}
+          <div className="mb-10 lg:hidden">
             <Link href="/" className="flex items-center gap-2">
-              <img src="/images/logo.png" alt="Sentinel-AI" className="h-9 w-9 object-contain" />
-              <span className="text-sm font-semibold text-slate-900">Sentinel-AI Workforce</span>
+              <img src="/images/logo.png" alt="Sentinel-AI" className="h-8 w-8 object-contain" />
+              <span className="font-pixel text-xs tracking-[0.25em] text-black/60">SENTINEL-AI</span>
             </Link>
           </div>
 
-          <h2 className="text-xl font-semibold text-slate-900">Sign in</h2>
-          <p className="mt-1 text-sm text-slate-500">Welcome back. Enter your details to continue.</p>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/[0.04] px-3 py-1 text-[11px] tracking-widest text-black/40">
+            SIGN IN
+          </span>
+          <h2
+            className="mt-5 font-light tracking-tight text-[#111]"
+            style={{ fontFamily: '"IBM Plex Sans", sans-serif', fontSize: "2rem", lineHeight: 1.1 }}
+          >
+            Welcome back.
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-black/45">
+            Enter your details to access your workforce operations.
+          </p>
 
-          <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
-            <Field label="Email" required error={errors.email}>
-              <Input
+          <form onSubmit={submit} className="mt-8 space-y-5" noValidate>
+            <div>
+              <label htmlFor="email" className="mb-1.5 block text-xs font-medium uppercase tracking-widest text-black/45">
+                Email
+              </label>
+              <input
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
                 autoComplete="email"
+                className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm text-[#111] outline-none transition-colors placeholder:text-black/25 focus:border-black/30"
               />
-            </Field>
-            <Field label="Password" required error={errors.password}>
-              <Input
+              {errors.email && <p className="mt-1.5 text-xs text-red-500/80">{errors.email}</p>}
+            </div>
+
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label htmlFor="password" className="block text-xs font-medium uppercase tracking-widest text-black/45">
+                  Password
+                </label>
+                <Link href="/forgot-password" className="text-xs text-black/40 transition-colors hover:text-black/70">
+                  Forgot password?
+                </Link>
+              </div>
+              <input
+                id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 autoComplete="current-password"
+                className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm text-[#111] outline-none transition-colors placeholder:text-black/25 focus:border-black/30"
               />
-            </Field>
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm text-slate-500">
-                <input type="checkbox" className="h-3.5 w-3.5 rounded border-slate-300" />
-                Remember me
-              </label>
-              <Link href="/forgot-password" className="text-sm font-medium text-[#0f2a4a] hover:underline">
-                Forgot password?
-              </Link>
+              {errors.password && <p className="mt-1.5 text-xs text-red-500/80">{errors.password}</p>}
             </div>
-            <Button type="submit" className="w-full">
-              Sign in <ArrowRight className="h-4 w-4" />
-            </Button>
+
+            <label className="flex items-center gap-2 text-sm text-black/45">
+              <input type="checkbox" className="h-3.5 w-3.5 rounded border-black/20" />
+              Remember me
+            </label>
+
+            <button
+              type="submit"
+              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-medium tracking-widest text-white transition-colors hover:bg-[#333]"
+            >
+              SIGN IN
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </button>
           </form>
 
           {/* Frontend demo role picker — not authentication */}
-          <div className="mt-8">
+          <div className="mt-10">
             <div className="mb-3 flex items-center gap-3">
-              <div className="h-px flex-1 bg-slate-100" />
-              <span className="text-[10px] font-medium uppercase tracking-widest text-slate-400">Preview interface</span>
-              <div className="h-px flex-1 bg-slate-100" />
+              <div className="h-px flex-1 bg-black/[0.07]" />
+              <span className="text-[10px] font-medium uppercase tracking-widest text-black/30">Preview interface</span>
+              <div className="h-px flex-1 bg-black/[0.07]" />
             </div>
             <div className="grid grid-cols-3 gap-2">
               {roles.map((r) => (
                 <button
                   key={r}
                   onClick={() => router.push(ROLE_META[r].home)}
-                  className="rounded-lg border border-slate-200 py-2 text-xs font-medium text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50"
+                  className="rounded-xl border border-black/10 py-2.5 text-xs font-medium tracking-wide text-black/55 transition-all hover:border-black/25 hover:bg-black/[0.03] hover:text-black"
                 >
                   {ROLE_META[r].label}
                 </button>
@@ -115,9 +170,9 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <p className="mt-8 text-center text-sm text-slate-500">
-            New to SentinelAI?{" "}
-            <Link href="/onboarding" className="font-medium text-[#0f2a4a] hover:underline">
+          <p className="mt-10 text-center text-sm text-black/45">
+            New to Sentinel-AI?{" "}
+            <Link href="/onboarding" className="font-medium text-[#111] hover:underline">
               Set up your workspace
             </Link>
           </p>
