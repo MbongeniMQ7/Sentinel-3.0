@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation"
 import { Menu, X, Search, Bell, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { NavGroup, Role } from "./nav-config"
-import { RoleSwitcher } from "./role-switcher"
 import { CommandPalette } from "./command-palette"
 import { useAuth } from "@/lib/supabase/use-auth"
 
@@ -78,9 +77,6 @@ export function AppShell({
           <Brand />
         </div>
         <NavLinks nav={nav} />
-        <div className="border-t border-slate-100 p-3">
-          <RoleSwitcher current={role} />
-        </div>
       </aside>
 
       {/* Mobile drawer */}
@@ -99,9 +95,6 @@ export function AppShell({
               </button>
             </div>
             <NavLinks nav={nav} onNavigate={() => setMobileOpen(false)} />
-            <div className="border-t border-slate-100 p-3">
-              <RoleSwitcher current={role} />
-            </div>
           </aside>
         </div>
       )}

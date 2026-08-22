@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation"
 import { Wrench, Watch, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { EMPLOYEE_NAV } from "./nav-config"
-import { RoleSwitcher } from "./role-switcher"
 import { useAuth } from "@/lib/supabase/use-auth"
 
 export function EmployeeShell({ children }: { children: React.ReactNode }) {
@@ -53,13 +52,6 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
 
       {/* Content */}
       <main className="mx-auto max-w-md px-4 pb-24 pt-5">{children}</main>
-
-      {/* Role switcher (dev helper) */}
-      <div className="fixed bottom-20 left-1/2 z-20 w-full max-w-md -translate-x-1/2 px-4">
-        <div className="ml-auto w-40">
-          <RoleSwitcher current="employee" />
-        </div>
-      </div>
 
       {/* Bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white">
