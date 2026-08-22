@@ -7,6 +7,7 @@ import { Button, Input, Select } from "@/components/app/controls"
 import { AddEmployeeModal } from "@/components/app/add-employee-modal"
 import { Modal } from "@/components/app/modal"
 import { Toast } from "@/components/app/toast"
+import { downloadCsv, type ReportData } from "@/lib/reports"
 import {
   listEmployees,
   listSites,
@@ -73,6 +74,28 @@ export default function ManagerEmployeesPage() {
     })
   }, [rows, query, siteFilter])
 
+  function handleExport() {
+    if (!filtered.length) {
+      setToast("There are no employees to export.")
+      return
+    }
+    const data: ReportData = {
+      title: "Employees",
+      columns: ["Name", "Email", "Role", "Site", "Status", "Linked"],
+      rows: filtered.map((r) => [
+        r.full_name ?? "—",
+        r.email ?? "—",
+        r.invited_role,
+        r.site?.name ?? "Unassigned",
+        r.status,
+        r.user_id ? "Active login" : "Invited",
+      ]),
+      summary: [{ label: "Total", value: String(filtered.length) }],
+    }
+    downloadCsv(data, { siteName: "All sites", range: "all" })
+    setToast(`Exported ${filtered.length} employee${filtered.length === 1 ? "" : "s"}.`)
+  }
+
   return (
     <>
       <PageHeader
@@ -80,7 +103,7 @@ export default function ManagerEmployeesPage() {
         description="The people you manage across your sites."
         actions={
           <>
-            <Button variant="secondary" onClick={() => setToast("Export coming soon.")}>
+            <Button variant="secondary" onClick={handleExport}>
               <Download className="h-4 w-4" /> Export
             </Button>
             <Button onClick={() => setOpen(true)}>

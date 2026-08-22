@@ -168,7 +168,7 @@ export async function hashCode(code: string, email: string, pepper: string): Pro
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("")
 }
 
-// Cryptographically strong six-digit code (100000–999999).
+// generates srandom six digit code for OTP
 export function generateCode(): string {
   const buf = new Uint32Array(1)
   crypto.getRandomValues(buf)

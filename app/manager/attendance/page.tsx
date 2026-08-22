@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react"
 import { ClipboardList, Search, Download } from "lucide-react"
 import { PageHeader, DataTable, EmptyState, Badge } from "@/components/app/primitives"
 import { Button, Input, Select } from "@/components/app/controls"
+import { Toast } from "@/components/app/toast"
+import { downloadCsv, type ReportData } from "@/lib/reports"
 import { listOrgAttendance, subscribeTable, type AttendanceRow } from "@/lib/supabase/db"
 
 function time(v: string | null) {
@@ -14,6 +16,7 @@ export default function ManagerAttendancePage() {
   const [query, setQuery] = useState("")
   const [dateFilter, setDateFilter] = useState("")
   const [rows, setRows] = useState<AttendanceRow[]>([])
+  const [toast, setToast] = useState<string | null>(null)
 
   function load() {
     listOrgAttendance(200).then(setRows).catch(() => setRows([]))
@@ -33,13 +36,36 @@ export default function ManagerAttendancePage() {
     })
   }, [rows, query, dateFilter])
 
+  function handleExport() {
+    if (!filtered.length) {
+      setToast("There are no attendance records to export.")
+      return
+    }
+    const data: ReportData = {
+      title: "Attendance",
+      columns: ["Employee", "Email", "Date", "Clock In", "Clock Out", "Hours", "Status"],
+      rows: filtered.map((r) => [
+        r.employee?.full_name ?? "—",
+        r.employee?.email ?? "—",
+        new Date(r.date).toLocaleDateString(),
+        time(r.clock_in_time),
+        time(r.clock_out_time),
+        Number(r.hours_worked || 0).toFixed(2),
+        r.status,
+      ]),
+      summary: [{ label: "Records", value: String(filtered.length) }],
+    }
+    downloadCsv(data, { siteName: "All sites", range: "all" })
+    setToast(`Exported ${filtered.length} record${filtered.length === 1 ? "" : "s"}.`)
+  }
+
   return (
     <>
       <PageHeader
         title="Attendance"
         description="Clock-in, clock-out and lateness across your workforce."
         actions={
-          <Button variant="secondary">
+          <Button variant="secondary" onClick={handleExport}>
             <Download className="h-4 w-4" /> Export
           </Button>
         }
@@ -85,6 +111,7 @@ export default function ManagerAttendancePage() {
             : undefined
         }
       />
+      <Toast message={toast} onDismiss={() => setToast(null)} />
     </>
   )
 }
