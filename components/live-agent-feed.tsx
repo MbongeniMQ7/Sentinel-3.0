@@ -25,7 +25,7 @@ const TASKS = [
   "Overtime threshold checked",
 ]
 
-const REGIONS = ["site-a", "site-b", "site-c", "site-d", "site-e"]
+const REGIONS = ["MML Solutions", "METech Solutions", "Sandton HQ", "Midrand Depot", "Rosebank Office"]
 const STATUSES = [
   { label: "running",  color: "#4ade80" },
   { label: "running",  color: "#4ade80" },
@@ -88,12 +88,12 @@ function ProgressBar({ initial }: { initial: number }) {
 
 // Stable seed rows — same on server and client, no random values
 const SEED_ROWS: AgentRow[] = [
-  { id: "A1B2C3", name: "band-7f2a", task: "Heart rate signal synced",       region: "site-a", status: STATUSES[0], progress: 42, elapsed: "3m 12s", key: 0 },
-  { id: "D4E5F6", name: "band-3b1c", task: "Working hours calculated",       region: "site-b", status: STATUSES[0], progress: 67, elapsed: "7m 48s", key: 1 },
-  { id: "G7H8I9", name: "band-2c8f", task: "Clock-in event recorded",        region: "site-c", status: STATUSES[3], progress: 18, elapsed: "1m 05s", key: 2 },
-  { id: "J0K1L2", name: "band-5a3d", task: "Activity pattern refreshed",     region: "site-d", status: STATUSES[0], progress: 55, elapsed: "5m 30s", key: 3 },
-  { id: "M3N4O5", name: "band-8d1a", task: "Fatigue score recalculated",     region: "site-e", status: STATUSES[0], progress: 80, elapsed: "11m 22s", key: 4 },
-  { id: "P6Q7R8", name: "band-9d4e", task: "Connection health checked",      region: "site-a", status: STATUSES[4], progress: 99, elapsed: "14m 01s", key: 5 },
+  { id: "A1B2C3", name: "band-7f2a", task: "Heart rate signal synced",       region: "MML Solutions",   status: STATUSES[0], progress: 42, elapsed: "3m 12s", key: 0 },
+  { id: "D4E5F6", name: "band-3b1c", task: "Working hours calculated",       region: "METech Solutions", status: STATUSES[0], progress: 67, elapsed: "7m 48s", key: 1 },
+  { id: "G7H8I9", name: "band-2c8f", task: "Clock-in event recorded",        region: "Sandton HQ",      status: STATUSES[3], progress: 18, elapsed: "1m 05s", key: 2 },
+  { id: "J0K1L2", name: "band-5a3d", task: "Activity pattern refreshed",     region: "Midrand Depot",   status: STATUSES[0], progress: 55, elapsed: "5m 30s", key: 3 },
+  { id: "M3N4O5", name: "band-8d1a", task: "Fatigue score recalculated",     region: "Rosebank Office", status: STATUSES[0], progress: 80, elapsed: "11m 22s", key: 4 },
+  { id: "P6Q7R8", name: "band-9d4e", task: "Connection health checked",      region: "MML Solutions",   status: STATUSES[4], progress: 99, elapsed: "14m 01s", key: 5 },
 ]
 
 export function LiveAgentFeed() {
