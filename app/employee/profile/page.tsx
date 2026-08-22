@@ -48,40 +48,45 @@ export default function EmployeeProfilePage() {
         <p className="mt-1 text-sm text-slate-500">Your personal details.</p>
       </div>
 
-      <SectionCard title="Details">
-        <div className="mb-5 flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-            <UserRound className="h-6 w-6 text-slate-400" />
+      <div className="grid gap-4 lg:grid-cols-3">
+        <SectionCard title="Overview" className="lg:col-span-1">
+          <div className="flex flex-col items-center gap-3 py-2 text-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
+              <UserRound className="h-9 w-9 text-slate-400" />
+            </div>
+            <div>
+              <p className="text-base font-semibold text-slate-800">{fullName}</p>
+              <p className="text-xs capitalize text-slate-500">{profile?.role ?? "Employee"}</p>
+            </div>
+            {profile?.email && <p className="break-all text-xs text-slate-400">{profile.email}</p>}
           </div>
-          <div>
-            <p className="text-sm font-medium text-slate-800">{fullName}</p>
-            <p className="text-xs capitalize text-slate-500">{profile?.role ?? "Employee"}</p>
-          </div>
-        </div>
+        </SectionCard>
 
-        <form onSubmit={handleSubmit} className="grid gap-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="First name">
-              <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" />
+        <SectionCard title="Details" className="lg:col-span-2">
+          <form onSubmit={handleSubmit} className="grid gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="First name">
+                <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" />
+              </Field>
+              <Field label="Last name">
+                <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" />
+              </Field>
+            </div>
+            <Field label="Email" hint="Email is managed via your login and can't be changed here.">
+              <Input type="email" value={profile?.email ?? ""} disabled />
             </Field>
-            <Field label="Last name">
-              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" />
+            <Field label="Phone">
+              <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone number" />
             </Field>
-          </div>
-          <Field label="Email" hint="Email is managed via your login and can't be changed here.">
-            <Input type="email" value={profile?.email ?? ""} disabled />
-          </Field>
-          <Field label="Phone">
-            <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone number" />
-          </Field>
-          {error && <p className="text-xs text-red-500">{error}</p>}
-          <div className="flex justify-end">
-            <Button type="submit" disabled={saving}>
-              {saving ? "Saving…" : "Save Changes"}
-            </Button>
-          </div>
-        </form>
-      </SectionCard>
+            {error && <p className="text-xs text-red-500">{error}</p>}
+            <div className="flex justify-end">
+              <Button type="submit" disabled={saving}>
+                {saving ? "Saving…" : "Save Changes"}
+              </Button>
+            </div>
+          </form>
+        </SectionCard>
+      </div>
 
       <Toast message={toast} onDismiss={() => setToast(null)} />
     </div>

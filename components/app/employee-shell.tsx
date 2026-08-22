@@ -118,7 +118,7 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Content */}
-        <main className="mx-auto max-w-3xl px-4 pb-24 pt-5 sm:px-6 lg:px-8 lg:pb-10">{children}</main>
+        <main className="mx-auto max-w-7xl px-4 pb-24 pt-5 sm:px-6 lg:px-8 lg:pb-10">{children}</main>
       </div>
 
       {/* Bottom nav (mobile only) */}

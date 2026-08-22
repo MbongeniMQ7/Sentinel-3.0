@@ -41,56 +41,70 @@ export default function EmployeeHomePage() {
         <p className="mt-1 text-sm text-slate-500">Here's your shift at a glance.</p>
       </div>
 
-      <ClockInCard onChange={load} />
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* Primary column */}
+        <div className="grid gap-4 lg:col-span-2">
+          <ClockInCard onChange={load} />
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
-            <Clock className="h-4 w-4 text-slate-400" /> Today
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+                <Clock className="h-4 w-4 text-slate-400" /> Today
+              </div>
+              <div className="mt-2 text-2xl font-semibold text-slate-900">{fmt(hours.today)}</div>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+                <Clock className="h-4 w-4 text-slate-400" /> This Week
+              </div>
+              <div className="mt-2 text-2xl font-semibold text-slate-900">{fmt(hours.week)}</div>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+                <Clock className="h-4 w-4 text-slate-400" /> This Month
+              </div>
+              <div className="mt-2 text-2xl font-semibold text-slate-900">{fmt(hours.month)}</div>
+            </div>
           </div>
-          <div className="mt-2 text-2xl font-semibold text-slate-900">{fmt(hours.today)}</div>
+
+          <SectionCard title="My Attendance" action={<Link href="/employee/attendance" className="text-xs font-medium text-(--brand) hover:underline">View all</Link>}>
+            {attendance.length === 0 ? (
+              <EmptyState icon={ClipboardList} title="No attendance records yet." description="Your clock-in history will appear here." />
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {attendance.map((a) => (
+                  <li key={a.id} className="flex items-center justify-between py-2.5 text-sm">
+                    <span className="font-medium text-slate-700">{new Date(a.date).toLocaleDateString()}</span>
+                    <span className="text-slate-500">{a.hours_worked ? fmt(Number(a.hours_worked)) : a.clock_in_time ? "In progress" : "—"}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </SectionCard>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
-            <Clock className="h-4 w-4 text-slate-400" /> This Week
-          </div>
-          <div className="mt-2 text-2xl font-semibold text-slate-900">{fmt(hours.week)}</div>
+
+        {/* Secondary column */}
+        <div className="grid gap-4">
+          <SectionCard title="My Alerts" action={<Link href="/employee/alerts" className="text-xs font-medium text-(--brand) hover:underline">View all</Link>}>
+            {alerts.length === 0 ? (
+              <EmptyState icon={BellOff} title="No alerts." description="You have no fatigue or attendance alerts." />
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {alerts.slice(0, 5).map((al) => (
+                  <li key={al.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                    <span className="min-w-0 truncate text-slate-700">{al.message || al.alert_type}</span>
+                    <RiskBadge level={al.risk_level} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </SectionCard>
+
+          <SectionCard title="My Device" action={<Link href="/employee/device" className="text-xs font-medium text-(--brand) hover:underline">Manage</Link>}>
+            <EmptyState icon={Watch} title="No wristband connected." description="Connect a wristband to track your wellbeing." />
+          </SectionCard>
         </div>
       </div>
-
-      <SectionCard title="My Attendance" action={<Link href="/employee/attendance" className="text-xs font-medium text-[#0f2a4a] hover:underline">View all</Link>}>
-        {attendance.length === 0 ? (
-          <EmptyState icon={ClipboardList} title="No attendance records yet." description="Your clock-in history will appear here." />
-        ) : (
-          <ul className="divide-y divide-slate-100">
-            {attendance.map((a) => (
-              <li key={a.id} className="flex items-center justify-between py-2.5 text-sm">
-                <span className="font-medium text-slate-700">{new Date(a.date).toLocaleDateString()}</span>
-                <span className="text-slate-500">{a.hours_worked ? fmt(Number(a.hours_worked)) : a.clock_in_time ? "In progress" : "—"}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </SectionCard>
-
-      <SectionCard title="My Alerts" action={<Link href="/employee/alerts" className="text-xs font-medium text-[#0f2a4a] hover:underline">View all</Link>}>
-        {alerts.length === 0 ? (
-          <EmptyState icon={BellOff} title="No alerts." description="You have no fatigue or attendance alerts." />
-        ) : (
-          <ul className="divide-y divide-slate-100">
-            {alerts.slice(0, 5).map((al) => (
-              <li key={al.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                <span className="min-w-0 truncate text-slate-700">{al.message || al.alert_type}</span>
-                <RiskBadge level={al.risk_level} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </SectionCard>
-
-      <SectionCard title="My Device" action={<Link href="/employee/device" className="text-xs font-medium text-[#0f2a4a] hover:underline">Manage</Link>}>
-        <EmptyState icon={Watch} title="No wristband connected." description="Connect a wristband to track your wellbeing." />
-      </SectionCard>
     </div>
   )
 }
