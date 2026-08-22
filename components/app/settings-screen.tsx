@@ -1,13 +1,136 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { SlidersHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SectionCard, EmptyState } from "./primitives"
 import { Button, Input, Field, Select } from "./controls"
 import { Toast } from "./toast"
+import {
+  getProfile,
+  updateMyProfile,
+  getOrganization,
+  updateOrganization,
+  type Profile,
+  type Organization,
+} from "@/lib/supabase/db"
 
 export type SettingsTab = { id: string; label: string }
+
+function AccountTab() {
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [language, setLanguage] = useState("English")
+  const [saving, setSaving] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+
+  useEffect(() => {
+    getProfile()
+      .then((p) => {
+        if (!p) return
+        setProfile(p)
+        setFirstName(p.first_name ?? "")
+        setLastName(p.last_name ?? "")
+        setLanguage(p.language ?? "English")
+      })
+      .catch(() => {})
+  }, [])
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await updateMyProfile({ first_name: firstName.trim(), last_name: lastName.trim(), language })
+      setToast("Account updated.")
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Could not save changes.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <SectionCard title="Account" description="Your personal profile details.">
+      <form onSubmit={save} className="max-w-lg space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="First name">
+            <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Your first name" />
+          </Field>
+          <Field label="Last name">
+            <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Your last name" />
+          </Field>
+        </div>
+        <Field label="Email" hint="Your sign-in email can't be changed here.">
+          <Input type="email" value={profile?.email ?? ""} disabled />
+        </Field>
+        <Field label="Language">
+          <Select value={language} onChange={(e) => setLanguage(e.target.value)}>
+            <option>English</option>
+          </Select>
+        </Field>
+        <Button type="submit" disabled={saving}>
+          {saving ? "Saving…" : "Save changes"}
+        </Button>
+      </form>
+      <Toast message={toast} onDismiss={() => setToast(null)} />
+    </SectionCard>
+  )
+}
+
+function CompanyTab() {
+  const [org, setOrg] = useState<Organization | null>(null)
+  const [name, setName] = useState("")
+  const [currency, setCurrency] = useState("ZAR")
+  const [saving, setSaving] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+
+  useEffect(() => {
+    getOrganization()
+      .then((o) => {
+        if (!o) return
+        setOrg(o)
+        setName(o.name ?? "")
+        setCurrency(o.currency ?? "ZAR")
+      })
+      .catch(() => {})
+  }, [])
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await updateOrganization({ name: name.trim(), currency })
+      setToast("Company updated.")
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Could not save changes.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <SectionCard title="Company" description="Organisation details shown across the platform.">
+      <form onSubmit={save} className="max-w-lg space-y-4">
+        <Field label="Company name">
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your company" />
+        </Field>
+        <Field label="Currency" hint="Used for estimated earnings">
+          <Select value={currency} onChange={(e) => setCurrency(e.target.value)}>
+            <option value="ZAR">ZAR (R)</option>
+            <option value="USD">USD ($)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="EUR">EUR (€)</option>
+          </Select>
+        </Field>
+        <Button type="submit" disabled={saving || !org}>
+          {saving ? "Saving…" : "Save changes"}
+        </Button>
+      </form>
+      <Toast message={toast} onDismiss={() => setToast(null)} />
+    </SectionCard>
+  )
+}
 
 function TabContent({ id }: { id: string }) {
   const [saved, setSaved] = useState<string | null>(null)
@@ -17,54 +140,8 @@ function TabContent({ id }: { id: string }) {
     setSaved("Changes saved for this session.")
   }
 
-  if (id === "account") {
-    return (
-      <SectionCard title="Account" description="Your personal profile details.">
-        <form onSubmit={save} className="max-w-lg space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="First name">
-              <Input placeholder="Your first name" />
-            </Field>
-            <Field label="Last name">
-              <Input placeholder="Your last name" />
-            </Field>
-          </div>
-          <Field label="Email">
-            <Input type="email" placeholder="you@company.com" />
-          </Field>
-          <Field label="Language">
-            <Select defaultValue="English">
-              <option>English</option>
-            </Select>
-          </Field>
-          <Button type="submit">Save changes</Button>
-        </form>
-        <Toast message={saved} onDismiss={() => setSaved(null)} />
-      </SectionCard>
-    )
-  }
-
-  if (id === "company") {
-    return (
-      <SectionCard title="Company" description="Organisation details shown across the platform.">
-        <form onSubmit={save} className="max-w-lg space-y-4">
-          <Field label="Company name">
-            <Input placeholder="Your company" />
-          </Field>
-          <Field label="Currency" hint="Used for estimated earnings">
-            <Select defaultValue="ZAR (R)">
-              <option>ZAR (R)</option>
-              <option>USD ($)</option>
-              <option>GBP (£)</option>
-              <option>EUR (€)</option>
-            </Select>
-          </Field>
-          <Button type="submit">Save changes</Button>
-        </form>
-        <Toast message={saved} onDismiss={() => setSaved(null)} />
-      </SectionCard>
-    )
-  }
+  if (id === "account") return <AccountTab />
+  if (id === "company") return <CompanyTab />
 
   if (id === "notifications") {
     const rows = ["Fatigue alerts", "Late arrivals", "Device disconnections", "Weekly summary"]

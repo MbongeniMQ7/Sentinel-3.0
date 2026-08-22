@@ -126,6 +126,37 @@ async function requireOrg(): Promise<string> {
   return profile.organization_id
 }
 
+// ─── Organization ─────────────────────────────────────────────────────────
+export type Organization = {
+  id: string
+  name: string
+  industry: string | null
+  currency: string | null
+  country: string | null
+  timezone: string | null
+}
+
+export async function getOrganization(): Promise<Organization | null> {
+  const orgId = await requireOrg().catch(() => null)
+  if (!orgId) return null
+  const { data } = await supabase
+    .from("organizations")
+    .select("id, name, industry, currency, country, timezone")
+    .eq("id", orgId)
+    .single()
+  return (data as Organization) ?? null
+}
+
+export async function updateOrganization(input: { name?: string; currency?: string; country?: string }) {
+  const orgId = await requireOrg()
+  const patch: Record<string, string> = {}
+  if (input.name !== undefined) patch.name = input.name
+  if (input.currency !== undefined) patch.currency = input.currency
+  if (input.country !== undefined) patch.country = input.country
+  const { error } = await supabase.from("organizations").update(patch).eq("id", orgId)
+  if (error) throw error
+}
+
 // ─── Sites ──────────────────────────────────────────────────────────────────
 export async function listSites(): Promise<Site[]> {
   const { data } = await supabase.from("sites").select("id, name, location, timezone, created_at").order("name")
@@ -379,7 +410,7 @@ export async function submitCorrection(input: {
 }
 
 // ─── Profile update ─────────────────────────────────────────────────────────
-export async function updateMyProfile(input: { first_name?: string; last_name?: string; phone?: string }) {
+export async function updateMyProfile(input: { first_name?: string; last_name?: string; phone?: string; language?: string }) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -442,6 +473,62 @@ export async function ownerMetrics() {
   const hoursWorked = rows.reduce((s: number, r: any) => s + Number(r.hours_worked || 0), 0)
   const fatigueAlerts = await count("fatigue_alerts", (q) => q.eq("acknowledged", false))
   return { employees, managers, sites, activeNow, hoursWorked, fatigueAlerts }
+}
+
+export type AnalyticsData = {
+  hoursTrend: { date: string; label: string; hours: number }[]
+  activityTrend: { date: string; label: string; present: number }[]
+  riskDistribution: { name: string; value: number }[]
+  hoursBySite: { site: string; hours: number }[]
+}
+
+// Aggregates the last 7 days of attendance plus fatigue risk for the analytics
+// dashboard and the dashboard trend chart.
+export async function analyticsData(): Promise<AnalyticsData> {
+  const days: { date: string; label: string }[] = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86_400_000)
+    days.push({
+      date: d.toISOString().slice(0, 10),
+      label: d.toLocaleDateString([], { weekday: "short" }),
+    })
+  }
+  const since = days[0].date
+
+  const [attRes, alertRes, sites] = await Promise.all([
+    supabase
+      .from("attendance_records")
+      .select("date, hours_worked, clock_in_time, site_id")
+      .gte("date", since),
+    supabase.from("fatigue_alerts").select("risk_level"),
+    listSites(),
+  ])
+
+  const att = (attRes.data ?? []) as { date: string; hours_worked: number | null; clock_in_time: string | null; site_id: string | null }[]
+  const alerts = (alertRes.data ?? []) as { risk_level: string }[]
+
+  const hoursByDate = new Map<string, number>()
+  const presentByDate = new Map<string, number>()
+  const hoursBySiteId = new Map<string, number>()
+  for (const r of att) {
+    hoursByDate.set(r.date, (hoursByDate.get(r.date) ?? 0) + Number(r.hours_worked || 0))
+    if (r.clock_in_time) presentByDate.set(r.date, (presentByDate.get(r.date) ?? 0) + 1)
+    if (r.site_id) hoursBySiteId.set(r.site_id, (hoursBySiteId.get(r.site_id) ?? 0) + Number(r.hours_worked || 0))
+  }
+
+  const riskCounts = { low: 0, moderate: 0, high: 0 } as Record<string, number>
+  for (const a of alerts) if (a.risk_level in riskCounts) riskCounts[a.risk_level] += 1
+
+  return {
+    hoursTrend: days.map((d) => ({ ...d, hours: Number((hoursByDate.get(d.date) ?? 0).toFixed(1)) })),
+    activityTrend: days.map((d) => ({ ...d, present: presentByDate.get(d.date) ?? 0 })),
+    riskDistribution: [
+      { name: "Low", value: riskCounts.low },
+      { name: "Moderate", value: riskCounts.moderate },
+      { name: "High", value: riskCounts.high },
+    ],
+    hoursBySite: sites.map((s) => ({ site: s.name, hours: Number((hoursBySiteId.get(s.id) ?? 0).toFixed(1)) })),
+  }
 }
 
 export async function managerMetrics() {
