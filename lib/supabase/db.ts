@@ -172,6 +172,12 @@ export async function createEmployee(input: {
     .select()
     .single()
   if (error) throw error
+  // Send the branded welcome email; don't fail the whole operation if delivery hiccups.
+  try {
+    await supabase.functions.invoke("send-invite", { body: { employee_id: data.id } })
+  } catch {
+    /* email is best-effort */
+  }
   return data
 }
 

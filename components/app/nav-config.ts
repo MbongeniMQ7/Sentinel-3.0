@@ -16,7 +16,6 @@ import {
   Home,
   Bell,
   UserRound,
-  Network,
   ClipboardList,
   Inbox,
 } from "lucide-react"
@@ -34,7 +33,6 @@ export const OWNER_NAV: NavGroup[] = [
   {
     label: "Workforce",
     items: [
-      { label: "Workforce", href: "/owner/workforce", icon: Network },
       { label: "Employees", href: "/owner/employees", icon: Users },
       { label: "Sites", href: "/owner/sites", icon: Building2 },
     ],
