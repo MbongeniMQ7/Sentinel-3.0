@@ -85,10 +85,10 @@
   --brand-ring: rgba(15, 42, 74, 0.35);
 }
 [data-role='manager'] {
-  --brand: #0d9488;
-  --brand-hover: #0f766e;
-  --brand-soft: rgba(13, 148, 136, 0.1);
-  --brand-ring: rgba(13, 148, 136, 0.35);
+  --brand: #0284c7;
+  --brand-hover: #0369a1;
+  --brand-soft: rgba(2, 132, 199, 0.1);
+  --brand-ring: rgba(2, 132, 199, 0.35);
 }
 
 @theme inline {

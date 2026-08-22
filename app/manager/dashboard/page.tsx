@@ -49,7 +49,7 @@ import {
   type EmployeeRow,
 } from "@/lib/supabase/db"
 
-const TEAL = "#0d9488"
+const SKY = "#0284c7"
 const RISK_COLORS = ["#22c55e", "#f59e0b", "#ef4444"]
 
 function greeting() {
@@ -118,27 +118,27 @@ export default function ManagerDashboard() {
     <>
       {/* ── Privileged hero ─────────────────────────────────────────────── */}
       <FadeIn>
-        <div className="relative overflow-hidden rounded-2xl border border-teal-900/30 bg-linear-to-br from-[#0b3f3a] via-[#0d5049] to-[#0f766e] p-6 text-white sm:p-8">
-          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-teal-300/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 right-24 h-48 w-48 rounded-full bg-emerald-300/10 blur-3xl" />
+        <div className="relative overflow-hidden rounded-2xl border border-sky-900/30 bg-linear-to-br from-[#075985] via-[#0369a1] to-[#0284c7] p-6 text-white sm:p-8">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-sky-300/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 right-24 h-48 w-48 rounded-full bg-blue-300/10 blur-3xl" />
 
           <div className="relative flex flex-col gap-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-teal-50 ring-1 ring-inset ring-white/20">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-sky-50 ring-1 ring-inset ring-white/20">
                   <ShieldCheck className="h-3.5 w-3.5" /> Manager access
                 </span>
                 <RevealText as="h1" className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
                   {greeting()}
                 </RevealText>
-                <p className="mt-1.5 max-w-xl text-sm text-teal-50/80">
+                <p className="mt-1.5 max-w-xl text-sm text-sky-50/80">
                   Your control center for the workforce — manage people, shifts, attendance and wellbeing across your sites.
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-2">
                 <Link href="/manager/employees">
-                  <button className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-4 text-sm font-medium text-[#0b3f3a] transition-colors hover:bg-teal-50">
+                  <button className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-4 text-sm font-medium text-[#075985] transition-colors hover:bg-sky-50">
                     <Plus className="h-4 w-4" /> Add Employee
                   </button>
                 </Link>
@@ -156,7 +156,7 @@ export default function ManagerDashboard() {
                 <FadeIn key={p.label} delay={120 + i * 60} y={8}>
                   <Link
                     href={p.href}
-                    className="group inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-teal-50 ring-1 ring-inset ring-white/15 transition-colors hover:bg-white/20"
+                    className="group inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-sky-50 ring-1 ring-inset ring-white/15 transition-colors hover:bg-white/20"
                   >
                     <p.icon className="h-3.5 w-3.5" />
                     {p.label}
@@ -173,10 +173,10 @@ export default function ManagerDashboard() {
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {metrics.map((tile, i) => (
           <FadeIn key={tile.label} delay={i * 70} y={14}>
-            <div className="group h-full rounded-xl border border-slate-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-sm">
+            <div className="group h-full rounded-xl border border-slate-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium uppercase tracking-wide text-slate-500">{tile.label}</span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-teal-600 transition-colors group-hover:bg-teal-100">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-50 text-sky-600 transition-colors group-hover:bg-sky-100">
                   <tile.icon className="h-4 w-4" />
                 </span>
               </div>
@@ -197,15 +197,15 @@ export default function ManagerDashboard() {
                 <AreaChart data={analytics!.hoursTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="mgrHoursFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={TEAL} stopOpacity={0.28} />
-                      <stop offset="100%" stopColor={TEAL} stopOpacity={0} />
+                      <stop offset="0%" stopColor={SKY} stopOpacity={0.28} />
+                      <stop offset="100%" stopColor={SKY} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#eef1f5" vertical={false} />
                   <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                   <Tooltip />
-                  <Area type="monotone" dataKey="hours" stroke={TEAL} strokeWidth={2} fill="url(#mgrHoursFill)" />
+                  <Area type="monotone" dataKey="hours" stroke={SKY} strokeWidth={2} fill="url(#mgrHoursFill)" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -223,7 +223,7 @@ export default function ManagerDashboard() {
                   <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                   <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="present" stroke={TEAL} strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="present" stroke={SKY} strokeWidth={2} dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
@@ -260,7 +260,7 @@ export default function ManagerDashboard() {
                   <XAxis dataKey="site" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                   <Tooltip />
-                  <Bar dataKey="hours" fill={TEAL} radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="hours" fill={SKY} radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -277,7 +277,7 @@ export default function ManagerDashboard() {
             title="Your Team"
             description="Recently added"
             action={
-              <Link href="/manager/employees" className="text-xs font-medium text-teal-700 hover:underline">
+              <Link href="/manager/employees" className="text-xs font-medium text-sky-700 hover:underline">
                 View all
               </Link>
             }
@@ -287,7 +287,7 @@ export default function ManagerDashboard() {
                 {employees.map((e) => (
                   <li key={e.id} className="flex items-center justify-between py-2.5">
                     <div className="flex min-w-0 items-center gap-2.5">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-50 text-xs font-semibold text-teal-700">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-50 text-xs font-semibold text-sky-700">
                         {(e.full_name || e.email || "?").charAt(0).toUpperCase()}
                       </span>
                       <div className="min-w-0">
@@ -321,7 +321,7 @@ export default function ManagerDashboard() {
             title="Priority Alerts"
             description="High-risk fatigue signals"
             action={
-              <Link href="/manager/alerts" className="text-xs font-medium text-teal-700 hover:underline">
+              <Link href="/manager/alerts" className="text-xs font-medium text-sky-700 hover:underline">
                 View all
               </Link>
             }
