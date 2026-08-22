@@ -74,6 +74,23 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+/* ─── Role-based workspace accent ─────────────────────────────────────────────
+   Cascades from the AppShell root ([data-role]). Public/auth pages fall back to
+   the navy default. Buttons, inputs and avatars read these vars so each
+   workspace has its own identity without duplicating components. */
+:root {
+  --brand: #0f2a4a;
+  --brand-hover: #163a63;
+  --brand-soft: rgba(15, 42, 74, 0.1);
+  --brand-ring: rgba(15, 42, 74, 0.35);
+}
+[data-role='manager'] {
+  --brand: #0d9488;
+  --brand-hover: #0f766e;
+  --brand-soft: rgba(13, 148, 136, 0.1);
+  --brand-ring: rgba(13, 148, 136, 0.35);
+}
+
 @theme inline {
   --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';

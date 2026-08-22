@@ -9,7 +9,7 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 
 export function Button({ variant = "primary", size = "md", className, ...props }: ButtonProps) {
   const variants = {
-    primary: "bg-[#0f2a4a] text-white hover:bg-[#163a63] disabled:opacity-50",
+    primary: "bg-[var(--brand)] text-white hover:bg-[var(--brand-hover)] disabled:opacity-50",
     secondary: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
     ghost: "text-slate-600 hover:bg-slate-100",
     danger: "border border-red-200 bg-white text-red-600 hover:bg-red-50",
@@ -21,7 +21,7 @@ export function Button({ variant = "primary", size = "md", className, ...props }
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0f2a4a]/30 disabled:cursor-not-allowed",
+        "inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--brand-ring) disabled:cursor-not-allowed",
         variants[variant],
         sizes[size],
         className,
@@ -38,7 +38,7 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
       <input
         ref={ref}
         className={cn(
-          "h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0f2a4a]/10",
+          "h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-(--brand-soft)",
           className,
         )}
         {...props}
@@ -52,7 +52,7 @@ export function Textarea({ className, ...props }: React.TextareaHTMLAttributes<H
   return (
     <textarea
       className={cn(
-        "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0f2a4a]/10",
+        "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-(--brand-soft)",
         className,
       )}
       {...props}
@@ -65,7 +65,7 @@ export function Select({ className, children, ...props }: React.SelectHTMLAttrib
   return (
     <select
       className={cn(
-        "h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0f2a4a]/10",
+        "h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-(--brand-soft)",
         className,
       )}
       {...props}

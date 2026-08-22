@@ -9,25 +9,79 @@ import type { NavGroup, Role } from "./nav-config"
 import { CommandPalette } from "./command-palette"
 import { useAuth } from "@/lib/supabase/use-auth"
 
-function Brand() {
+type ShellTheme = {
+  label: string
+  sidebar: string
+  brandTitle: string
+  brandSub: string
+  groupLabel: string
+  itemIdle: string
+  itemActive: string
+  itemActiveIcon: string
+  itemIdleIcon: string
+  closeBtn: string
+}
+
+const THEMES: Record<Role, ShellTheme> = {
+  owner: {
+    label: "Owner",
+    sidebar: "border-slate-200 bg-white",
+    brandTitle: "text-slate-900",
+    brandSub: "text-slate-400",
+    groupLabel: "text-slate-400",
+    itemIdle: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+    itemActive: "bg-[var(--brand)] text-white",
+    itemActiveIcon: "text-white",
+    itemIdleIcon: "text-slate-400",
+    closeBtn: "text-slate-500 hover:bg-slate-100",
+  },
+  manager: {
+    label: "Manager",
+    sidebar: "border-teal-950/50 bg-[#0b3f3a]",
+    brandTitle: "text-white",
+    brandSub: "text-teal-200/70",
+    groupLabel: "text-teal-200/50",
+    itemIdle: "text-teal-50/80 hover:bg-white/10 hover:text-white",
+    itemActive: "bg-white text-[#0b3f3a] font-medium",
+    itemActiveIcon: "text-[#0b3f3a]",
+    itemIdleIcon: "text-teal-200/70",
+    closeBtn: "text-teal-100 hover:bg-white/10",
+  },
+  employee: {
+    label: "Employee",
+    sidebar: "border-slate-200 bg-white",
+    brandTitle: "text-slate-900",
+    brandSub: "text-slate-400",
+    groupLabel: "text-slate-400",
+    itemIdle: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+    itemActive: "bg-[var(--brand)] text-white",
+    itemActiveIcon: "text-white",
+    itemIdleIcon: "text-slate-400",
+    closeBtn: "text-slate-500 hover:bg-slate-100",
+  },
+}
+
+function Brand({ theme }: { theme: ShellTheme }) {
   return (
     <Link href="/" className="flex items-center gap-2 px-1">
       <img src="/images/logo.png" alt="Sentinel-AI" className="h-8 w-8 object-contain" />
       <div className="leading-tight">
-        <span className="block text-sm font-semibold tracking-tight text-slate-900">Sentinel-AI</span>
-        <span className="block text-[10px] uppercase tracking-widest text-slate-400">Workforce</span>
+        <span className={cn("block text-sm font-semibold tracking-tight", theme.brandTitle)}>Sentinel-AI</span>
+        <span className={cn("block text-[10px] uppercase tracking-widest", theme.brandSub)}>
+          {theme.label} workspace
+        </span>
       </div>
     </Link>
   )
 }
 
-function NavLinks({ nav, onNavigate }: { nav: NavGroup[]; onNavigate?: () => void }) {
+function NavLinks({ nav, theme, onNavigate }: { nav: NavGroup[]; theme: ShellTheme; onNavigate?: () => void }) {
   const pathname = usePathname()
   return (
     <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
       {nav.map((group) => (
         <div key={group.label}>
-          <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+          <p className={cn("mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-widest", theme.groupLabel)}>
             {group.label}
           </p>
           <div className="space-y-0.5">
@@ -40,12 +94,10 @@ function NavLinks({ nav, onNavigate }: { nav: NavGroup[]; onNavigate?: () => voi
                   onClick={onNavigate}
                   className={cn(
                     "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
-                    active
-                      ? "bg-[#0f2a4a] text-white"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                    active ? theme.itemActive : theme.itemIdle,
                   )}
                 >
-                  <item.icon className={cn("h-4 w-4 shrink-0", active ? "text-white" : "text-slate-400")} />
+                  <item.icon className={cn("h-4 w-4 shrink-0", active ? theme.itemActiveIcon : theme.itemIdleIcon)} />
                   {item.label}
                 </Link>
               )
@@ -68,33 +120,34 @@ export function AppShell({
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { initial, displayName, signOut } = useAuth()
+  const theme = THEMES[role]
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div data-role={role} className="min-h-screen bg-slate-50 text-slate-900">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
+      <aside className={cn("fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r lg:flex", theme.sidebar)}>
         <div className="px-4 py-4">
-          <Brand />
+          <Brand theme={theme} />
         </div>
-        <NavLinks nav={nav} />
+        <NavLinks nav={nav} theme={theme} />
       </aside>
 
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="absolute inset-0 bg-slate-900/30" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col border-r border-slate-200 bg-white">
+          <div className="absolute inset-0 bg-slate-900/40" onClick={() => setMobileOpen(false)} />
+          <aside className={cn("absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r", theme.sidebar)}>
             <div className="flex items-center justify-between px-4 py-4">
-              <Brand />
+              <Brand theme={theme} />
               <button
                 onClick={() => setMobileOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+                className={cn("flex h-8 w-8 items-center justify-center rounded-lg", theme.closeBtn)}
                 aria-label="Close menu"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <NavLinks nav={nav} onNavigate={() => setMobileOpen(false)} />
+            <NavLinks nav={nav} theme={theme} onNavigate={() => setMobileOpen(false)} />
           </aside>
         </div>
       )}
@@ -120,7 +173,7 @@ export function AppShell({
               <Bell className="h-4.5 w-4.5" />
             </button>
             <div
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0f2a4a] text-xs font-semibold text-white"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-(--brand) text-xs font-semibold text-white"
               title={displayName}
             >
               {initial || role.charAt(0).toUpperCase()}
