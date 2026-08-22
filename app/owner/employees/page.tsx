@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Users, Plus, Search, Download, Send, Trash2 } from "lucide-react"
+import { Users, Plus, Search, Download, Send, Trash2, ShieldCheck } from "lucide-react"
 import { PageHeader, DataTable, EmptyState, Badge } from "@/components/app/primitives"
 import { Button, Input, Select } from "@/components/app/controls"
 import { AddEmployeeModal } from "@/components/app/add-employee-modal"
@@ -13,6 +13,7 @@ import {
   listSites,
   resendInvite,
   deleteEmployee,
+  promoteToOwner,
   subscribeTable,
   type EmployeeRow,
   type Site,
@@ -28,6 +29,7 @@ export default function OwnerEmployeesPage() {
   const [sites, setSites] = useState<Site[]>([])
   const [busyId, setBusyId] = useState<string | null>(null)
   const [toDelete, setToDelete] = useState<EmployeeRow | null>(null)
+  const [toPromote, setToPromote] = useState<EmployeeRow | null>(null)
 
   function load() {
     listEmployees().then(setRows).catch(() => setRows([]))
@@ -55,6 +57,26 @@ export default function OwnerEmployeesPage() {
       load()
     } catch (err) {
       setToast(err instanceof Error ? err.message : "Could not remove the employee.")
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function handlePromote() {
+    if (!toPromote) return
+    setBusyId(toPromote.id)
+    try {
+      const res = await promoteToOwner(toPromote.id)
+      const name = toPromote.full_name || toPromote.email || "This person"
+      setToast(
+        res.emailed === false
+          ? `${name} is now an owner, but the notification email couldn't be sent.`
+          : `${name} is now an owner. A confirmation email has been sent.`,
+      )
+      setToPromote(null)
+      load()
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Could not promote this person to owner.")
     } finally {
       setBusyId(null)
     }
@@ -174,6 +196,17 @@ export default function OwnerEmployeesPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
+                      {r.invited_role === "manager" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={busyId === r.id}
+                          onClick={() => setToPromote(r)}
+                          title="Promote to owner"
+                        >
+                          <ShieldCheck className="h-4 w-4" /> Make Owner
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -221,6 +254,28 @@ export default function OwnerEmployeesPage() {
       >
         <p className="text-sm text-slate-600">
           {toDelete?.email} will no longer appear in your workforce or receive Sentinel-AI access.
+        </p>
+      </Modal>
+
+      <Modal
+        open={!!toPromote}
+        onClose={() => setToPromote(null)}
+        title="Promote to owner"
+        description={`${toPromote?.full_name || toPromote?.email || "This person"} will be granted full owner access to your organization.`}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setToPromote(null)} disabled={busyId === toPromote?.id}>
+              Cancel
+            </Button>
+            <Button onClick={handlePromote} disabled={busyId === toPromote?.id}>
+              {busyId === toPromote?.id ? "Promoting…" : "Make Owner"}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-slate-600">
+          Owners can manage sites, employees, analytics, reports and settings. {toPromote?.email} will be emailed to
+          confirm their new role.
         </p>
       </Modal>
 

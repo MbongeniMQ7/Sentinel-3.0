@@ -263,7 +263,7 @@ export default function LoginPage() {
 
           <p className="mt-10 text-center text-sm text-black/45">
             New to Sentinel-AI?{" "}
-            <Link href="/onboarding" className="font-medium text-[#111] hover:underline">
+            <Link href="/apply" className="font-medium text-[#111] hover:underline">
               Set up your workspace
             </Link>
           </p>

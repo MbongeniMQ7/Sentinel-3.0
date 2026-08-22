@@ -218,6 +218,13 @@ export async function resendInvite(employeeId: string) {
   return data
 }
 
+// Promote a manager to owner: updates their role + linked profile and emails them.
+export async function promoteToOwner(employeeId: string): Promise<{ ok: boolean; emailed?: boolean }> {
+  const { data, error } = await supabase.functions.invoke("promote-owner", { body: { employee_id: employeeId } })
+  if (error) throw new Error(error.message || "Could not promote this person to owner.")
+  return data as { ok: boolean; emailed?: boolean }
+}
+
 export async function deleteEmployee(employeeId: string) {
   const { error } = await supabase.from("employees").delete().eq("id", employeeId)
   if (error) throw error
