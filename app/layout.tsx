@@ -11,6 +11,7 @@ const _courierPrime = Courier_Prime({ weight: ["400", "700"], subsets: ["latin"]
 const _ibmPlexSans = IBM_Plex_Sans({ weight: ["300", "400", "500", "600"], subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://sentinel-30.vercel.app'),
   title: 'SentinelAI Workforce — See your workforce clearly',
   description: 'SentinelAI Workforce combines workforce management, attendance intelligence and fatigue indicators into one operational platform. Smart wristbands, biometric signals and activity patterns — unified.',
   keywords: ['workforce management', 'fatigue monitoring', 'attendance', 'workforce intelligence', 'biometric wristband'],
@@ -19,13 +20,22 @@ export const metadata: Metadata = {
     title: 'SentinelAI Workforce — See your workforce clearly',
     description: 'Workforce management, attendance intelligence and fatigue indicators in one operational platform.',
     type: 'website',
-    url: 'https://sentinelai.workforce',
+    url: 'https://sentinel-30.vercel.app',
     siteName: 'SentinelAI Workforce',
+    images: [
+      {
+        url: '/images/logo.png',
+        width: 1900,
+        height: 1900,
+        alt: 'Sentinel-AI',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'SentinelAI Workforce — See your workforce clearly',
     description: 'Workforce management, attendance intelligence and fatigue indicators in one operational platform.',
+    images: ['/images/logo.png'],
   },
   icons: {
     icon: [
