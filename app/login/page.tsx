@@ -32,13 +32,12 @@ export default function LoginPage() {
       return
     }
     setLoading(true)
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: true },
+    const { data, error } = await supabase.functions.invoke("request-otp", {
+      body: { email: email.trim().toLowerCase() },
     })
     setLoading(false)
-    if (error) {
-      setError(error.message)
+    if (error || !data?.ok) {
+      setError(data?.error || "Could not send the code. Please try again.")
       return
     }
     setDigits(Array(6).fill(""))
@@ -55,7 +54,15 @@ export default function LoginPage() {
       return
     }
     setLoading(true)
-    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" })
+    const { data, error: fnError } = await supabase.functions.invoke("verify-otp", {
+      body: { email: email.trim().toLowerCase(), code },
+    })
+    if (fnError || !data?.ok || !data?.token_hash) {
+      setLoading(false)
+      setError(data?.error || "Incorrect code. Please try again.")
+      return
+    }
+    const { error } = await supabase.auth.verifyOtp({ token_hash: data.token_hash, type: "magiclink" })
     if (error) {
       setLoading(false)
       setError(error.message)
