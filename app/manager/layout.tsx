@@ -1,3 +1,5 @@
+"use client"
+
 import { AppShell } from "@/components/app/app-shell"
 import { MANAGER_NAV } from "@/components/app/nav-config"
 
