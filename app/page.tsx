@@ -481,7 +481,7 @@ export default function SentinelPage() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <span className="flex items-center gap-2">
             <img src="/images/logo.png" alt="Sentinel-AI" className="h-6 w-6 object-contain" />
-            <span className="font-pixel text-xs tracking-[0.25em] text-black/50">SENTINEL-AI</span>
+            <span className="font-sans text-xs font-medium tracking-[0.25em] text-black/50">SENTINEL-AI</span>
           </span>
 
           {/* Nav sections */}

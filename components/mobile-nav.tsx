@@ -32,7 +32,7 @@ export function MobileNav() {
         >
           <span className="flex items-center gap-2">
             <img src="/images/logo.png" alt="Sentinel-AI" className="h-6 w-6 object-contain" />
-            <span className="font-pixel text-xs tracking-[0.25em] text-black/70">SENTINEL-AI</span>
+            <span className="font-sans text-xs font-medium tracking-[0.25em] text-black/70">SENTINEL-AI</span>
           </span>
 
           {/* Desktop links */}
