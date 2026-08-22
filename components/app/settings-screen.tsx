@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { SlidersHorizontal } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { SlidersHorizontal, ImagePlus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SectionCard, EmptyState } from "./primitives"
 import { Button, Input, Field, Select } from "./controls"
@@ -11,6 +11,7 @@ import {
   updateMyProfile,
   getOrganization,
   updateOrganization,
+  uploadOrganizationLogo,
   type Profile,
   type Organization,
 } from "@/lib/supabase/db"
@@ -84,6 +85,9 @@ function CompanyTab() {
   const [currency, setCurrency] = useState("ZAR")
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     getOrganization()
@@ -92,9 +96,26 @@ function CompanyTab() {
         setOrg(o)
         setName(o.name ?? "")
         setCurrency(o.currency ?? "ZAR")
+        setLogoUrl(o.logo_url ?? null)
       })
       .catch(() => {})
   }, [])
+
+  async function onPickLogo(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ""
+    if (!file) return
+    setUploading(true)
+    try {
+      const url = await uploadOrganizationLogo(file)
+      setLogoUrl(url)
+      setToast("Logo updated.")
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Could not upload the logo.")
+    } finally {
+      setUploading(false)
+    }
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault()
@@ -112,6 +133,26 @@ function CompanyTab() {
   return (
     <SectionCard title="Company" description="Organisation details shown across the platform.">
       <form onSubmit={save} className="max-w-lg space-y-4">
+        <Field label="Logo" hint="PNG or JPG, up to 2MB.">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+              {logoUrl ? (
+                <img src={logoUrl} alt="Company logo" className="h-full w-full object-contain" />
+              ) : (
+                <ImagePlus className="h-5 w-5 text-slate-400" />
+              )}
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPickLogo} />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading || !org}
+            >
+              {uploading ? "Uploading…" : logoUrl ? "Change logo" : "Upload logo"}
+            </Button>
+          </div>
+        </Field>
         <Field label="Company name">
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your company" />
         </Field>

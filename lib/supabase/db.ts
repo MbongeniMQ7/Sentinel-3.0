@@ -134,6 +134,7 @@ export type Organization = {
   currency: string | null
   country: string | null
   timezone: string | null
+  logo_url: string | null
 }
 
 export async function getOrganization(): Promise<Organization | null> {
@@ -141,20 +142,40 @@ export async function getOrganization(): Promise<Organization | null> {
   if (!orgId) return null
   const { data } = await supabase
     .from("organizations")
-    .select("id, name, industry, currency, country, timezone")
+    .select("id, name, industry, currency, country, timezone, logo_url")
     .eq("id", orgId)
     .single()
   return (data as Organization) ?? null
 }
 
-export async function updateOrganization(input: { name?: string; currency?: string; country?: string }) {
+export async function updateOrganization(input: { name?: string; currency?: string; country?: string; logo_url?: string }) {
   const orgId = await requireOrg()
   const patch: Record<string, string> = {}
   if (input.name !== undefined) patch.name = input.name
   if (input.currency !== undefined) patch.currency = input.currency
   if (input.country !== undefined) patch.country = input.country
+  if (input.logo_url !== undefined) patch.logo_url = input.logo_url
   const { error } = await supabase.from("organizations").update(patch).eq("id", orgId)
   if (error) throw error
+}
+
+// Uploads a logo image to the org-logos bucket and saves its public URL.
+export async function uploadOrganizationLogo(file: File): Promise<string> {
+  const orgId = await requireOrg()
+  if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.")
+  if (file.size > 2 * 1024 * 1024) throw new Error("Logo must be 2MB or smaller.")
+
+  const ext = (file.name.split(".").pop() || "png").toLowerCase()
+  const path = `${orgId}/logo-${Date.now()}.${ext}`
+  const { error: uploadError } = await supabase.storage
+    .from("org-logos")
+    .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" })
+  if (uploadError) throw uploadError
+
+  const { data } = supabase.storage.from("org-logos").getPublicUrl(path)
+  const url = data.publicUrl
+  await updateOrganization({ logo_url: url })
+  return url
 }
 
 // ─── Sites ──────────────────────────────────────────────────────────────────
