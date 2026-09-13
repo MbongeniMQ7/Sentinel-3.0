@@ -57,6 +57,16 @@ export type DeviceRow = {
   employee?: { full_name: string | null } | null
 }
 
+export type BiometricRow = {
+  id: string
+  reading_time: string
+  heart_rate: number | null
+  hrv: number | null
+  skin_temperature: number | null
+  movement: "low" | "moderate" | "high" | null
+  activity_score: number | null
+}
+
 export type AttendanceRow = {
   id: string
   employee_id: string
@@ -307,6 +317,40 @@ export async function createDevice(input: { device_id: string; employee_id?: str
     .single()
   if (error) throw error
   return data
+}
+
+// Latest wristband readings for the signed-in employee, newest first.
+export async function listMyBiometrics(limit = 24): Promise<BiometricRow[]> {
+  const emp = await getMyEmployee()
+  if (!emp) return []
+  const { data } = await supabase
+    .from("biometric_readings")
+    .select("id, reading_time, heart_rate, hrv, skin_temperature, movement, activity_score")
+    .eq("employee_id", emp.id)
+    .order("reading_time", { ascending: false })
+    .limit(limit)
+  return (data as BiometricRow[]) ?? []
+}
+
+export type FatigueAssessmentRow = {
+  id: string
+  employee_id: string
+  assessed_at: string
+  risk_level: "low" | "moderate" | "high"
+  fatigue_score: number | null
+  employee?: { full_name: string | null } | null
+}
+
+// Org-wide fatigue assessments for the last N days, newest first.
+export async function listFatigueAssessments(days = 7): Promise<FatigueAssessmentRow[]> {
+  const since = new Date(Date.now() - days * 86_400_000).toISOString()
+  const { data } = await supabase
+    .from("fatigue_assessments")
+    .select("id, employee_id, assessed_at, risk_level, fatigue_score, employee:employees(full_name)")
+    .gte("assessed_at", since)
+    .order("assessed_at", { ascending: false })
+    .limit(2000)
+  return (data as unknown as FatigueAssessmentRow[]) ?? []
 }
 
 // ─── Employee self record ───────────────────────────────────────────────────

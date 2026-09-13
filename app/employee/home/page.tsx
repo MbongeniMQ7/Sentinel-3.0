@@ -3,9 +3,18 @@
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { ClipboardList, BellOff, Watch, Clock } from "lucide-react"
-import { SectionCard, EmptyState, RiskBadge } from "@/components/app/primitives"
+import { SectionCard, EmptyState, RiskBadge, Badge } from "@/components/app/primitives"
 import { ClockInCard } from "@/components/app/clock-in-card"
-import { listMyAlerts, listMyAttendance, myHoursSummary, type AttendanceRow, type FatigueAlertRow } from "@/lib/supabase/db"
+import {
+  getMyEmployee,
+  listDevices,
+  listMyAlerts,
+  listMyAttendance,
+  myHoursSummary,
+  type AttendanceRow,
+  type DeviceRow,
+  type FatigueAlertRow,
+} from "@/lib/supabase/db"
 
 function greeting() {
   const h = new Date().getHours()
@@ -23,11 +32,18 @@ export default function EmployeeHomePage() {
   const [hours, setHours] = useState({ today: 0, week: 0, month: 0 })
   const [attendance, setAttendance] = useState<AttendanceRow[]>([])
   const [alerts, setAlerts] = useState<FatigueAlertRow[]>([])
+  const [device, setDevice] = useState<DeviceRow | null>(null)
 
   const load = useCallback(() => {
     myHoursSummary().then(setHours).catch(() => {})
     listMyAttendance(5).then(setAttendance).catch(() => {})
     listMyAlerts().then(setAlerts).catch(() => {})
+    ;(async () => {
+      const emp = await getMyEmployee()
+      if (!emp) return
+      const devices = await listDevices()
+      setDevice(devices.find((d) => d.employee_id === emp.id) ?? null)
+    })().catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -101,7 +117,24 @@ export default function EmployeeHomePage() {
           </SectionCard>
 
           <SectionCard title="My Device" action={<Link href="/employee/device" className="text-xs font-medium text-(--brand) hover:underline">Manage</Link>}>
-            <EmptyState icon={Watch} title="No wristband connected." description="Connect a wristband to track your wellbeing." />
+            {device ? (
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
+                  <Watch className="h-5 w-5 text-slate-500" />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-slate-900">{device.device_id}</p>
+                  <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+                    <Badge tone={device.connection_status === "connected" ? "green" : device.connection_status === "syncing" ? "amber" : "slate"}>
+                      {device.connection_status}
+                    </Badge>
+                    <span>{device.battery_level ?? "—"}% battery</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <EmptyState icon={Watch} title="No wristband connected." description="Connect a wristband to track your wellbeing." />
+            )}
           </SectionCard>
         </div>
       </div>
