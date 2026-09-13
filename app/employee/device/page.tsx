@@ -11,6 +11,19 @@ import {
   type BiometricRow,
   type DeviceRow,
 } from "@/lib/supabase/db"
+import { useLiveVitals, useNow, timeAgo } from "@/hooks/use-live-vitals"
+
+function LivePulse() {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+      <span className="relative flex h-2 w-2">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+      </span>
+      LIVE
+    </span>
+  )
+}
 
 function VitalCard({
   icon: Icon,
@@ -61,6 +74,9 @@ export default function EmployeeDevicePage() {
   }, [load])
 
   const latest = readings[0] ?? null
+  const live = useLiveVitals(latest)
+  const now = useNow(1000)
+  const streaming = device?.connection_status === "connected"
 
   return (
     <div className="grid gap-4">
@@ -94,9 +110,7 @@ export default function EmployeeDevicePage() {
                 <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
                   <Wifi className="h-4 w-4 text-slate-400" /> Last Sync
                 </div>
-                <div className="mt-1.5 text-sm font-medium text-slate-700">
-                  {device.last_sync_time ? new Date(device.last_sync_time).toLocaleString() : "Never"}
-                </div>
+                <div className="mt-1.5 text-sm font-medium text-slate-700">{timeAgo(device.last_sync_time, now)}</div>
               </div>
             </div>
           </div>
@@ -112,13 +126,14 @@ export default function EmployeeDevicePage() {
       {device && (
         <SectionCard
           title="Live Vitals"
-          description={latest ? `Last reading ${new Date(latest.reading_time).toLocaleTimeString()}` : undefined}
+          description={latest ? `Streaming • last sync ${timeAgo(latest.reading_time, now)}` : undefined}
+          action={streaming && latest ? <LivePulse /> : undefined}
         >
           {latest ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <VitalCard icon={HeartPulse} label="Heart Rate" value={latest.heart_rate ?? "—"} unit="bpm" />
-              <VitalCard icon={Activity} label="HRV" value={latest.hrv ?? "—"} unit="ms" />
-              <VitalCard icon={Thermometer} label="Skin Temp" value={latest.skin_temperature ?? "—"} unit="°C" />
+              <VitalCard icon={HeartPulse} label="Heart Rate" value={live.heart_rate ?? latest.heart_rate ?? "—"} unit="bpm" />
+              <VitalCard icon={Activity} label="HRV" value={live.hrv ?? latest.hrv ?? "—"} unit="ms" />
+              <VitalCard icon={Thermometer} label="Skin Temp" value={live.skin_temperature ?? latest.skin_temperature ?? "—"} unit="°C" />
               <VitalCard icon={Footprints} label="Movement" value={latest.movement ?? "—"} />
             </div>
           ) : (

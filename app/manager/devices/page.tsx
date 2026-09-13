@@ -16,6 +16,7 @@ import {
   type EmployeeRow,
   type Site,
 } from "@/lib/supabase/db"
+import { useNow, timeAgo } from "@/hooks/use-live-vitals"
 
 export default function ManagerDevicesPage() {
   const [open, setOpen] = useState(false)
@@ -26,6 +27,7 @@ export default function ManagerDevicesPage() {
   const [sites, setSites] = useState<Site[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const now = useNow(1000)
 
   const load = useCallback(() => {
     listDevices().then(setDevices).catch(() => setDevices([]))
@@ -109,9 +111,7 @@ export default function ManagerDevicesPage() {
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-slate-600">{d.battery_level ?? "—"}%</td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {d.last_sync_time ? new Date(d.last_sync_time).toLocaleString() : "Never"}
-                  </td>
+                  <td className="px-4 py-3 text-slate-600">{timeAgo(d.last_sync_time, now)}</td>
                 </tr>
               ))
             : undefined

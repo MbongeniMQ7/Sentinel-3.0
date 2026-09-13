@@ -132,8 +132,9 @@ Deno.serve(async (req) => {
     const persona = hash(d.device_id) // 0..1, stable per device
 
     // ── 2. Device tick: battery, connection, sync ────────────────────────────
+    // Per-minute ticks: ~5%/hour drain → roughly a 20-hour battery life.
     let battery = d.battery_level ?? 80
-    battery = battery <= 5 ? 95 + Math.floor(rand() * 6) : clamp(battery - (rand() < 0.6 ? 1 : 0), 0, 100)
+    battery = battery <= 5 ? 95 + Math.floor(rand() * 6) : clamp(battery - (rand() < 0.08 ? 1 : 0), 0, 100)
 
     const roll = rand()
     const connection = roll < 0.04 ? "disconnected" : roll < 0.12 ? "syncing" : "connected"
@@ -187,24 +188,27 @@ Deno.serve(async (req) => {
     )
     const risk = fatigueScore >= 70 ? "high" : fatigueScore >= 40 ? "moderate" : "low"
 
-    assessments.push({
-      organization_id: d.organization_id,
-      employee_id: d.employee_id,
-      site_id: d.site_id,
-      assessed_at: now.toISOString(),
-      risk_level: risk,
-      fatigue_score: fatigueScore,
-      heart_rate_avg: heartRate,
-      hrv_avg: hrv,
-      temperature_avg: skinTemp,
-      movement_pattern: movement,
-      factors: [
-        worked > 8 ? "extended_shift" : null,
-        hrv < 40 ? "low_hrv" : null,
-        heartRate > 95 ? "elevated_heart_rate" : null,
-        skinTemp > 37.2 ? "heat_exposure" : null,
-      ].filter(Boolean),
-    })
+    // Assessments are sampled (~every 7 min) so per-minute ticks don't flood the table.
+    if (rand() < 0.15) {
+      assessments.push({
+        organization_id: d.organization_id,
+        employee_id: d.employee_id,
+        site_id: d.site_id,
+        assessed_at: now.toISOString(),
+        risk_level: risk,
+        fatigue_score: fatigueScore,
+        heart_rate_avg: heartRate,
+        hrv_avg: hrv,
+        temperature_avg: skinTemp,
+        movement_pattern: movement,
+        factors: [
+          worked > 8 ? "extended_shift" : null,
+          hrv < 40 ? "low_hrv" : null,
+          heartRate > 95 ? "elevated_heart_rate" : null,
+          skinTemp > 37.2 ? "heat_exposure" : null,
+        ].filter(Boolean),
+      })
+    }
 
     if (risk !== "low" && !recentlyAlerted.has(d.employee_id) && rand() < (risk === "high" ? 0.9 : 0.25)) {
       const heat = skinTemp > 37.2
@@ -225,7 +229,7 @@ Deno.serve(async (req) => {
     }
 
     // Occasional visible sync event in the activity feed.
-    if (rand() < 0.15) {
+    if (rand() < 0.05) {
       activity.push({
         organization_id: d.organization_id,
         employee_id: d.employee_id,
@@ -243,9 +247,9 @@ Deno.serve(async (req) => {
   if (activity.length) await admin.from("activity_logs").insert(activity)
 
   // ── 5. Prune simulated history so tables stay lean ─────────────────────────
-  const weekAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString()
+  const twoDaysAgo = new Date(now.getTime() - 2 * 86_400_000).toISOString()
   const monthAgo = new Date(now.getTime() - 30 * 86_400_000).toISOString()
-  await admin.from("biometric_readings").delete().lt("reading_time", weekAgo)
+  await admin.from("biometric_readings").delete().lt("reading_time", twoDaysAgo)
   await admin.from("fatigue_assessments").delete().lt("assessed_at", monthAgo)
 
   return json({
