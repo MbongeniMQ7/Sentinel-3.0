@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 import { Users, Plus, Search, Download } from "lucide-react"
 import { PageHeader, DataTable, EmptyState, Badge } from "@/components/app/primitives"
 import { Button, Input, Select } from "@/components/app/controls"
@@ -117,7 +118,9 @@ export default function ManagerEmployeesPage() {
             ? filtered.map((r) => (
                 <tr key={r.id} className="border-b border-slate-50 last:border-0">
                   <td className="px-4 py-3">
-                    <div className="font-medium text-slate-900">{r.full_name || "—"}</div>
+                    <Link href={`/manager/employees/${r.id}`} className="font-medium text-slate-900 hover:text-(--brand) hover:underline">
+                      {r.full_name || "—"}
+                    </Link>
                     <div className="text-xs text-slate-400">{r.email}</div>
                   </td>
                   <td className="px-4 py-3 text-slate-600">{r.site?.name || "Unassigned"}</td>

@@ -353,6 +353,67 @@ export async function listFatigueAssessments(days = 7): Promise<FatigueAssessmen
   return (data as unknown as FatigueAssessmentRow[]) ?? []
 }
 
+// ─── Employee drill-down (manager/owner views) ──────────────────────────────
+export async function getEmployee(id: string): Promise<EmployeeRow | null> {
+  const { data } = await supabase
+    .from("employees")
+    .select("id, full_name, email, invited_role, status, role_title, site_id, user_id, created_at, site:sites(name)")
+    .eq("id", id)
+    .maybeSingle()
+  return (data as unknown as EmployeeRow) ?? null
+}
+
+export async function listEmployeeAttendance(employeeId: string, limit = 30): Promise<AttendanceRow[]> {
+  const { data } = await supabase
+    .from("attendance_records")
+    .select("*")
+    .eq("employee_id", employeeId)
+    .order("date", { ascending: false })
+    .limit(limit)
+  return (data as AttendanceRow[]) ?? []
+}
+
+export async function listEmployeeBiometrics(employeeId: string, limit = 24): Promise<BiometricRow[]> {
+  const { data } = await supabase
+    .from("biometric_readings")
+    .select("id, reading_time, heart_rate, hrv, skin_temperature, movement, activity_score")
+    .eq("employee_id", employeeId)
+    .order("reading_time", { ascending: false })
+    .limit(limit)
+  return (data as BiometricRow[]) ?? []
+}
+
+export async function listEmployeeAssessments(employeeId: string, days = 7): Promise<FatigueAssessmentRow[]> {
+  const since = new Date(Date.now() - days * 86_400_000).toISOString()
+  const { data } = await supabase
+    .from("fatigue_assessments")
+    .select("id, employee_id, assessed_at, risk_level, fatigue_score")
+    .eq("employee_id", employeeId)
+    .gte("assessed_at", since)
+    .order("assessed_at", { ascending: false })
+    .limit(1000)
+  return (data as FatigueAssessmentRow[]) ?? []
+}
+
+export async function listEmployeeAlerts(employeeId: string): Promise<FatigueAlertRow[]> {
+  const { data } = await supabase
+    .from("fatigue_alerts")
+    .select("id, alert_type, risk_level, message, severity, acknowledged, created_at")
+    .eq("employee_id", employeeId)
+    .order("created_at", { ascending: false })
+    .limit(50)
+  return (data as unknown as FatigueAlertRow[]) ?? []
+}
+
+export async function getEmployeeDevice(employeeId: string): Promise<DeviceRow | null> {
+  const { data } = await supabase
+    .from("devices")
+    .select("id, device_id, connection_status, battery_level, last_sync_time, employee_id, site_id")
+    .eq("employee_id", employeeId)
+    .maybeSingle()
+  return (data as DeviceRow) ?? null
+}
+
 // ─── Employee self record ───────────────────────────────────────────────────
 export async function getMyEmployee(): Promise<EmployeeRow | null> {
   const {
