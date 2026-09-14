@@ -1,8 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Watch, Battery, Wifi, HeartPulse, Activity, Thermometer, Footprints } from "lucide-react"
-import { SectionCard, EmptyState, Badge } from "@/components/app/primitives"
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts"
+import { PageHeader, SectionCard, EmptyState, Badge } from "@/components/app/primitives"
+import { FadeIn } from "@/components/app/motion"
 import {
   getMyEmployee,
   listDevices,
@@ -12,6 +14,8 @@ import {
   type DeviceRow,
 } from "@/lib/supabase/db"
 import { useLiveVitals, useNow, timeAgo } from "@/hooks/use-live-vitals"
+
+const EMERALD = "#059669"
 
 function LivePulse() {
   return (
@@ -78,19 +82,30 @@ export default function EmployeeDevicePage() {
   const now = useNow(1000)
   const streaming = device?.connection_status === "connected"
 
-  return (
-    <div className="grid gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">My Device</h1>
-        <p className="mt-1 text-sm text-slate-500">Your wristband and its live biometric signals.</p>
-      </div>
+  const hrTrend = useMemo(
+    () =>
+      [...readings]
+        .reverse()
+        .map((r) => ({
+          label: new Date(r.reading_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          hr: r.heart_rate,
+          hrv: r.hrv,
+        })),
+    [readings],
+  )
 
+  return (
+    <>
+      <PageHeader title="My Device" description="Your wristband and its live biometric signals." />
+
+      <div className="grid gap-4">
+      <FadeIn>
       <SectionCard title="Wristband">
         {device ? (
           <div>
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
-                <Watch className="h-6 w-6 text-slate-500" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
+                <Watch className="h-6 w-6 text-emerald-600" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-900">{device.device_id}</p>
@@ -122,8 +137,10 @@ export default function EmployeeDevicePage() {
           />
         )}
       </SectionCard>
+      </FadeIn>
 
       {device && (
+        <FadeIn delay={60}>
         <SectionCard
           title="Live Vitals"
           description={latest ? `Streaming • last sync ${timeAgo(latest.reading_time, now)}` : undefined}
@@ -144,9 +161,28 @@ export default function EmployeeDevicePage() {
             />
           )}
         </SectionCard>
+        </FadeIn>
       )}
 
       {device && readings.length > 1 && (
+        <FadeIn delay={100}>
+        <SectionCard title="Heart Rate Trend" description="Recent readings from your wristband">
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={hrTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#eef1f5" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <Tooltip />
+              <Line type="monotone" dataKey="hr" name="HR (bpm)" stroke={EMERALD} strokeWidth={2} dot={{ r: 2 }} />
+              <Line type="monotone" dataKey="hrv" name="HRV (ms)" stroke="#94a3b8" strokeWidth={1.5} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </SectionCard>
+        </FadeIn>
+      )}
+
+      {device && readings.length > 1 && (
+        <FadeIn delay={140}>
         <SectionCard title="Recent Readings" description="Your latest wristband syncs.">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -175,7 +211,9 @@ export default function EmployeeDevicePage() {
             </table>
           </div>
         </SectionCard>
+        </FadeIn>
       )}
-    </div>
+      </div>
+    </>
   )
 }

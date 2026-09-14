@@ -90,6 +90,12 @@
   --brand-soft: rgba(2, 132, 199, 0.1);
   --brand-ring: rgba(2, 132, 199, 0.35);
 }
+[data-role='employee'] {
+  --brand: #059669;
+  --brand-hover: #047857;
+  --brand-soft: rgba(5, 150, 105, 0.1);
+  --brand-ring: rgba(5, 150, 105, 0.35);
+}
 
 @theme inline {
   --font-sans: 'Geist', 'Geist Fallback';

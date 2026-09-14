@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { ClipboardCheck } from "lucide-react"
-import { SectionCard, EmptyState, Badge } from "@/components/app/primitives"
+import { PageHeader, SectionCard, EmptyState, Badge } from "@/components/app/primitives"
+import { FadeIn } from "@/components/app/motion"
 import { Button, Input, Select, Textarea, Field } from "@/components/app/controls"
 import { Toast } from "@/components/app/toast"
 import { listMyAttendance, listMyCorrections, submitCorrection, type AttendanceRow } from "@/lib/supabase/db"
@@ -56,12 +57,11 @@ export default function EmployeeCorrectionsPage() {
   }
 
   return (
-    <div className="grid gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Corrections</h1>
-        <p className="mt-1 text-sm text-slate-500">Request a change to an attendance record.</p>
-      </div>
+    <>
+      <PageHeader title="Corrections" description="Request a change to an attendance record." />
 
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+      <FadeIn>
       <SectionCard title="New Correction Request">
         <form key={key} onSubmit={handleSubmit} className="grid gap-4">
           <Field label="Record" required hint="The attendance record you'd like corrected.">
@@ -101,8 +101,10 @@ export default function EmployeeCorrectionsPage() {
           </div>
         </form>
       </SectionCard>
+      </FadeIn>
 
-      <SectionCard title="My Requests">
+      <FadeIn delay={60}>
+      <SectionCard title="My Requests" description="Status of your submitted requests">
         {requests.length === 0 ? (
           <EmptyState
             icon={ClipboardCheck}
@@ -123,8 +125,10 @@ export default function EmployeeCorrectionsPage() {
           </ul>
         )}
       </SectionCard>
+      </FadeIn>
+      </div>
 
       <Toast message={toast} onDismiss={() => setToast(null)} />
-    </div>
+    </>
   )
 }

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { UserRound } from "lucide-react"
-import { SectionCard } from "@/components/app/primitives"
+import { PageHeader, SectionCard, Badge } from "@/components/app/primitives"
+import { FadeIn } from "@/components/app/motion"
 import { Button, Input, Field } from "@/components/app/controls"
 import { Toast } from "@/components/app/toast"
 import { getProfile, updateMyProfile, type Profile } from "@/lib/supabase/db"
@@ -42,27 +43,28 @@ export default function EmployeeProfilePage() {
   }
 
   return (
-    <div className="grid gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">My Profile</h1>
-        <p className="mt-1 text-sm text-slate-500">Your personal details.</p>
-      </div>
+    <>
+      <PageHeader title="My Profile" description="Your personal details." />
 
       <div className="grid gap-4 lg:grid-cols-3">
+        <FadeIn>
         <SectionCard title="Overview" className="lg:col-span-1">
           <div className="flex flex-col items-center gap-3 py-2 text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
-              <UserRound className="h-9 w-9 text-slate-400" />
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-(--brand-soft)">
+              <UserRound className="h-9 w-9 text-(--brand)" />
             </div>
             <div>
               <p className="text-base font-semibold text-slate-800">{fullName}</p>
               <p className="text-xs capitalize text-slate-500">{profile?.role ?? "Employee"}</p>
             </div>
+            <Badge tone="green">Employee workspace</Badge>
             {profile?.email && <p className="break-all text-xs text-slate-400">{profile.email}</p>}
           </div>
         </SectionCard>
+        </FadeIn>
 
-        <SectionCard title="Details" className="lg:col-span-2">
+        <FadeIn delay={60} className="lg:col-span-2">
+        <SectionCard title="Details">
           <form onSubmit={handleSubmit} className="grid gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="First name">
@@ -86,9 +88,10 @@ export default function EmployeeProfilePage() {
             </div>
           </form>
         </SectionCard>
+        </FadeIn>
       </div>
 
       <Toast message={toast} onDismiss={() => setToast(null)} />
-    </div>
+    </>
   )
 }

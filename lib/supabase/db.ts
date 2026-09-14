@@ -112,7 +112,7 @@ export async function getProfile(): Promise<Profile | null> {
     .from("profiles")
     .select("id, organization_id, email, role, first_name, last_name, phone, language")
     .eq("id", user.id)
-    .single()
+    .maybeSingle()
   return (data as Profile) ?? null
 }
 
@@ -122,6 +122,11 @@ export async function bootstrapSession(): Promise<Profile | null> {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return null
+  // Self-heal accounts that predate the profile trigger.
+  let profile = await getProfile()
+  if (!profile) {
+    await supabase.from("profiles").insert({ id: user.id, email: user.email, role: "employee" })
+  }
   await supabase.rpc("claim_invite")
   return getProfile()
 }

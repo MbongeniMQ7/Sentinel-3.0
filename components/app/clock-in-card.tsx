@@ -76,7 +76,7 @@ export function ClockInCard({ onChange }: { onChange?: () => void }) {
           disabled={busy}
           className={cn(
             "mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-colors disabled:opacity-60",
-            working ? "bg-red-600 hover:bg-red-700" : "bg-[#0f2a4a] hover:bg-[#163a63]",
+            working ? "bg-red-600 hover:bg-red-700" : "bg-(--brand) hover:bg-(--brand-hover)",
           )}
         >
           {working ? (

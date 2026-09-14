@@ -7,6 +7,7 @@ import { ArrowRight, ArrowLeft, Loader2 } from "lucide-react"
 import { WorkforceGrid } from "@/components/workforce-grid"
 import { ROLE_META, type Role } from "@/components/app/nav-config"
 import { supabase } from "@/lib/supabase/client"
+import { bootstrapSession } from "@/lib/supabase/db"
 
 type Step = "email" | "code"
 
@@ -68,14 +69,10 @@ export default function LoginPage() {
       setError(error.message)
       return
     }
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    let role: Role = "employee"
-    if (user) {
-      const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
-      if (profile?.role) role = profile.role as Role
-    }
+    // Claim any pending invite first so first-time users get their org + role
+    // linked before we decide which workspace to send them to.
+    const profile = await bootstrapSession()
+    const role: Role = (profile?.role as Role) || "employee"
     router.push(ROLE_META[role].home)
   }
 
