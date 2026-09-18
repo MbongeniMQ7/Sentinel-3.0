@@ -614,6 +614,7 @@ export async function ownerMetrics() {
 }
 
 export type AnalyticsData = {
+  includesSamples?: boolean
   hoursTrend: { date: string; label: string; hours: number }[]
   activityTrend: { date: string; label: string; present: number }[]
   riskDistribution: { name: string; value: number }[]
@@ -621,15 +622,7 @@ export type AnalyticsData = {
 }
 
 // Aggregates the last 7 days of attendance plus fatigue risk for the analytics
-  includesSamples?: boolean
 // dashboard and the dashboard trend chart.
-export async function analyticsData(): Promise<AnalyticsData> {
-  const days: { date: string; label: string }[] = []
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(Date.now() - i * 86_400_000)
-    days.push({
-      date: d.toISOString().slice(0, 10),
-      label: d.toLocaleDateString([], { weekday: "short" }),
 async function latestWorkforceRisks() {
   const since = new Date(Date.now() - 13 * 86_400_000).toISOString().slice(0, 10)
   const latest = new Map<string, { employee_id: string; risk_level: "low" | "moderate" | "high"; is_sample: boolean }>()
@@ -643,6 +636,13 @@ async function latestWorkforceRisks() {
   }
 }
 
+export async function analyticsData(): Promise<AnalyticsData> {
+  const days: { date: string; label: string }[] = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86_400_000)
+    days.push({
+      date: d.toISOString().slice(0, 10),
+      label: d.toLocaleDateString([], { weekday: "short" }),
     })
   }
   const since = days[0].date
@@ -672,6 +672,7 @@ async function latestWorkforceRisks() {
   for (const assessment of risks) riskCounts[assessment.risk_level] += 1
 
   return {
+    includesSamples: att.some(record => record.is_sample) || risks.some(record => record.is_sample),
     hoursTrend: days.map((d) => ({ ...d, hours: Number((hoursByDate.get(d.date) ?? 0).toFixed(1)) })),
     activityTrend: days.map((d) => ({ ...d, present: presentByDate.get(d.date) ?? 0 })),
     riskDistribution: [
@@ -679,7 +680,6 @@ async function latestWorkforceRisks() {
       { name: "Moderate", value: riskCounts.moderate },
       { name: "High", value: riskCounts.high },
     ],
-    includesSamples: att.some(record => record.is_sample) || risks.some(record => record.is_sample),
     hoursBySite: sites.map((s) => ({ site: s.name, hours: Number((hoursBySiteId.get(s.id) ?? 0).toFixed(1)) })),
   }
 }

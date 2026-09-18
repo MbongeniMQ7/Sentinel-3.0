@@ -10,7 +10,11 @@ import { SampleDataNotice } from "./sample-data-notice"
 
 export function EmployeeShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { signOut, initial, displayName } = useAuth()
+  const { signOut, initial, displayName, loading, profile } = useAuth()
+
+  if (loading || !profile || profile.role !== "employee") {
+    return <div role="status" className="p-6 text-sm text-slate-500">Loading workspace...</div>
+  }
 
   return (
     <div data-role="employee" className="min-h-screen bg-slate-50 text-slate-900">
