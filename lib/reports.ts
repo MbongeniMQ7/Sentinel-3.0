@@ -8,6 +8,8 @@ import {
   listFatigueAlerts,
   ownerMetrics,
 } from "./supabase/db"
+import { loadWorkforce } from "./supabase/workforce"
+import { workforceSummary } from "./workforce"
 
 export type ReportRange = "today" | "7d" | "30d" | "month" | "all"
 export type ReportFormat = "pdf" | "csv"
@@ -104,8 +106,20 @@ export async function buildReport(type: string, opts: BuildOpts): Promise<Report
       }
     }
 
-    case "Working Hours":
     case "Estimated Earnings": {
+      const end = new Date().toISOString().slice(0, 10)
+      const first = start?.toISOString().slice(0, 10) || "2000-01-01"
+      const data = await loadWorkforce(first, end)
+      const result = workforceSummary(data, { start: first, end, site: siteId })
+      return {
+        title: "Estimated Earnings",
+        columns: ["Employee", "Regular Hours", "Overtime Hours", `Regular Pay (${data.currency})`, `Overtime Pay (${data.currency})`, `Estimated Total (${data.currency})`, "Source", "Missing Rates"],
+        rows: result.workers.map(worker => [worker.full_name || "Unnamed employee", worker.regular.toFixed(2), worker.overtime.toFixed(2), worker.regularPay.toFixed(2), worker.overtimePay.toFixed(2), worker.totalPay.toFixed(2), worker.sample ? "Includes samples" : "Recorded", worker.missingRates]),
+        summary: [{ label: "Estimated Total", value: `${data.currency} ${result.totals.totalPay.toFixed(2)}` }, { label: "Missing Rates", value: String(result.totals.missingRates) }],
+      }
+    }
+
+    case "Working Hours": {
       const all = await listOrgAttendance(2000)
       const filtered = all.filter((r) => {
         if (siteId && (r as unknown as { site_id?: string }).site_id !== siteId) return false

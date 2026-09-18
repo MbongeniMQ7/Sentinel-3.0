@@ -52,7 +52,7 @@ export default function OwnerAnalyticsPage() {
     const load = () => analyticsData().then(setData).catch(() => setData(null)).finally(() => setLoading(false))
     load()
     const a = subscribeTable("attendance_records", load)
-    const b = subscribeTable("fatigue_alerts", load)
+    const b = subscribeTable("fatigue_assessments", load)
     return () => {
       a()
       b()
@@ -70,7 +70,7 @@ export default function OwnerAnalyticsPage() {
     hoursBySite: hasSites ? data!.hoursBySite : samples.hoursBySite,
     activityTrend: hasActivity ? data!.activityTrend : samples.activityTrend,
   }
-  const source = (hasLiveData: boolean) => loading ? "Loading" : hasLiveData ? "Live data" : "Sample data"
+  const source = (hasLiveData: boolean) => loading ? "Loading" : hasLiveData ? data?.includesSamples ? "Includes sample records" : "Recorded data" : "Sample data"
 
   return (
     <>
@@ -99,7 +99,7 @@ export default function OwnerAnalyticsPage() {
           )}
         </SectionCard>
 
-        <SectionCard title="Risk Distribution" description={`Fatigue alerts by risk level. ${source(hasRisk)}`}>
+        <SectionCard title="Risk Distribution" description={`Latest employee assessments. ${source(hasRisk)}`}>
           {!loading ? (
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>

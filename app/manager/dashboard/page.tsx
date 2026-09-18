@@ -85,10 +85,12 @@ export default function ManagerDashboard() {
     const a = subscribeTable("attendance_records", load)
     const b = subscribeTable("fatigue_alerts", load)
     const c = subscribeTable("employees", load)
+    const d = subscribeTable("fatigue_assessments", load)
     return () => {
       a()
       b()
       c()
+      d()
     }
   }, [])
 
@@ -102,7 +104,7 @@ export default function ManagerDashboard() {
   const insights: string[] = []
   if (m.working > 0) insights.push(`${m.working} ${m.working === 1 ? "person is" : "people are"} actively working right now.`)
   if (m.late > 0) insights.push(`${m.late} late arrival${m.late === 1 ? "" : "s"} recorded today — review attendance.`)
-  if (m.high > 0) insights.push(`${m.high} high-risk fatigue alert${m.high === 1 ? "" : "s"} need your attention.`)
+  if (m.high > 0) insights.push(`${m.high} employee${m.high === 1 ? " has" : "s have"} a high-risk fatigue assessment.`)
   if (m.hoursWorked > 0) insights.push(`${m.hoursWorked.toFixed(1)} hours logged across your team today.`)
 
   const metrics = [
@@ -233,7 +235,7 @@ export default function ManagerDashboard() {
         </FadeIn>
 
         <FadeIn delay={40}>
-          <SectionCard title="Fatigue Risk" description="Active alerts by risk level">
+          <SectionCard title="Fatigue Risk" description="Latest assessment per employee">
             {hasRisk ? (
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>

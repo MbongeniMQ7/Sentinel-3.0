@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import type { NavGroup, Role } from "./nav-config"
 import { CommandPalette } from "./command-palette"
 import { useAuth } from "@/lib/supabase/use-auth"
+import { SampleDataNotice } from "./sample-data-notice"
 
 type ShellTheme = {
   label: string
@@ -189,7 +190,7 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"><SampleDataNotice />{children}</main>
       </div>
 
       <CommandPalette role={role} />

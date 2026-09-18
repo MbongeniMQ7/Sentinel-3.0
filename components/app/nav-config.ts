@@ -35,11 +35,17 @@ export const OWNER_NAV: NavGroup[] = [
     items: [
       { label: "Employees", href: "/owner/employees", icon: Users },
       { label: "Sites", href: "/owner/sites", icon: Building2 },
+      { label: "Working Hours", href: "/owner/hours", icon: Clock },
+      { label: "Earnings", href: "/owner/earnings", icon: Wallet },
     ],
   },
   {
     label: "Intelligence",
-    items: [{ label: "Analytics", href: "/owner/analytics", icon: BarChart3 }],
+    items: [
+      { label: "Analytics", href: "/owner/analytics", icon: BarChart3 },
+      { label: "Fatigue Monitoring", href: "/owner/fatigue", icon: ShieldAlert },
+      { label: "Activity Patterns", href: "/owner/activity", icon: Activity },
+    ],
   },
   {
     label: "Growth",
@@ -100,6 +106,9 @@ export const EMPLOYEE_NAV: NavItem[] = [
   { label: "Hours", href: "/employee/hours", icon: Clock },
   { label: "Alerts", href: "/employee/alerts", icon: Bell },
   { label: "Profile", href: "/employee/profile", icon: UserRound },
+  { label: "Earnings", href: "/employee/earnings", icon: Wallet },
+  { label: "Activity", href: "/employee/activity", icon: Activity },
+  { label: "Fatigue", href: "/employee/fatigue", icon: ShieldAlert },
 ]
 
 export const ROLE_META: Record<Role, { label: string; home: string }> = {

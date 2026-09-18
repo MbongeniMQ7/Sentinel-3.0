@@ -6,6 +6,7 @@ import { Wrench, Watch, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { EMPLOYEE_NAV } from "./nav-config"
 import { useAuth } from "@/lib/supabase/use-auth"
+import { SampleDataNotice } from "./sample-data-notice"
 
 export function EmployeeShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -118,13 +119,19 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Content */}
-        <main className="mx-auto max-w-7xl px-4 pb-24 pt-5 sm:px-6 lg:px-8 lg:pb-10">{children}</main>
+        <main className="mx-auto max-w-7xl px-4 pb-24 pt-5 sm:px-6 lg:px-8 lg:pb-10">
+          <nav aria-label="Personal insights" className="mb-4 flex flex-wrap gap-3 lg:hidden">
+            {EMPLOYEE_NAV.slice(5).map(item => <Link key={item.href} href={item.href} className={cn("inline-flex items-center gap-1.5 py-2 text-sm", pathname === item.href ? "font-semibold text-emerald-700" : "text-slate-600")}><item.icon className="h-4 w-4" />{item.label}</Link>)}
+          </nav>
+          <SampleDataNotice personal />
+          {children}
+        </main>
       </div>
 
       {/* Bottom nav (mobile only) */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white lg:hidden">
         <div className="mx-auto flex max-w-md items-stretch justify-between px-2">
-          {EMPLOYEE_NAV.map((item) => {
+          {EMPLOYEE_NAV.slice(0, 5).map((item) => {
             const active = pathname === item.href
             return (
               <Link

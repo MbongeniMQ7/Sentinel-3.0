@@ -621,6 +621,7 @@ export type AnalyticsData = {
 }
 
 // Aggregates the last 7 days of attendance plus fatigue risk for the analytics
+  includesSamples?: boolean
 // dashboard and the dashboard trend chart.
 export async function analyticsData(): Promise<AnalyticsData> {
   const days: { date: string; label: string }[] = []
@@ -629,21 +630,34 @@ export async function analyticsData(): Promise<AnalyticsData> {
     days.push({
       date: d.toISOString().slice(0, 10),
       label: d.toLocaleDateString([], { weekday: "short" }),
+async function latestWorkforceRisks() {
+  const since = new Date(Date.now() - 13 * 86_400_000).toISOString().slice(0, 10)
+  const latest = new Map<string, { employee_id: string; risk_level: "low" | "moderate" | "high"; is_sample: boolean }>()
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await supabase.from("workforce_daily_assessments")
+      .select("employee_id, risk_level, is_sample, assessed_at").gte("assessed_at", `${since}T00:00:00Z`)
+      .order("assessed_at", { ascending: false }).order("employee_id").range(offset, offset + 999)
+    if (error) throw error
+    for (const assessment of data || []) if (!latest.has(assessment.employee_id)) latest.set(assessment.employee_id, assessment)
+    if (!data || data.length < 1000) return [...latest.values()]
+  }
+}
+
     })
   }
   const since = days[0].date
 
-  const [attRes, alertRes, sites] = await Promise.all([
+  const [attRes, risks, sites] = await Promise.all([
     supabase
       .from("attendance_records")
-      .select("date, hours_worked, clock_in_time, site_id")
+      .select("date, hours_worked, clock_in_time, site_id, is_sample")
       .gte("date", since),
-    supabase.from("fatigue_alerts").select("risk_level"),
+    latestWorkforceRisks(),
     listSites(),
   ])
 
-  const att = (attRes.data ?? []) as { date: string; hours_worked: number | null; clock_in_time: string | null; site_id: string | null }[]
-  const alerts = (alertRes.data ?? []) as { risk_level: string }[]
+  if (attRes.error) throw attRes.error
+  const att = (attRes.data ?? []) as { date: string; hours_worked: number | null; clock_in_time: string | null; site_id: string | null; is_sample: boolean }[]
 
   const hoursByDate = new Map<string, number>()
   const presentByDate = new Map<string, number>()
@@ -655,7 +669,7 @@ export async function analyticsData(): Promise<AnalyticsData> {
   }
 
   const riskCounts = { low: 0, moderate: 0, high: 0 } as Record<string, number>
-  for (const a of alerts) if (a.risk_level in riskCounts) riskCounts[a.risk_level] += 1
+  for (const assessment of risks) riskCounts[assessment.risk_level] += 1
 
   return {
     hoursTrend: days.map((d) => ({ ...d, hours: Number((hoursByDate.get(d.date) ?? 0).toFixed(1)) })),
@@ -665,6 +679,7 @@ export async function analyticsData(): Promise<AnalyticsData> {
       { name: "Moderate", value: riskCounts.moderate },
       { name: "High", value: riskCounts.high },
     ],
+    includesSamples: att.some(record => record.is_sample) || risks.some(record => record.is_sample),
     hoursBySite: sites.map((s) => ({ site: s.name, hours: Number((hoursBySiteId.get(s.id) ?? 0).toFixed(1)) })),
   }
 }
@@ -679,10 +694,9 @@ export async function managerMetrics() {
   const working = rows.filter((r: any) => r.clock_in_time && !r.clock_out_time).length
   const late = rows.filter((r: any) => (r.late_minutes || 0) > 0 || r.status === "late").length
   const hoursWorked = rows.reduce((s: number, r: any) => s + Number(r.hours_worked || 0), 0)
-  const [moderate, high] = await Promise.all([
-    count("fatigue_alerts", (q) => q.eq("acknowledged", false).eq("risk_level", "moderate")),
-    count("fatigue_alerts", (q) => q.eq("acknowledged", false).eq("risk_level", "high")),
-  ])
+  const risks = await latestWorkforceRisks()
+  const moderate = risks.filter(record => record.risk_level === "moderate").length
+  const high = risks.filter(record => record.risk_level === "high").length
   return { onShift, working, late, hoursWorked, moderate, high }
 }
 
