@@ -171,6 +171,9 @@ importers:
         specifier: ^3.24.1
         version: 3.25.76
     devDependencies:
+      '@electric-sql/pglite':
+        specifier: ^0.5.8
+        version: 0.5.8
       '@tailwindcss/postcss':
         specifier: ^4.2.0
         version: 4.2.0
@@ -197,6 +200,9 @@ importers:
         version: 5.7.3
 
 packages:
+
+  '@electric-sql/pglite@0.5.8':
+    resolution: {integrity: sha512-n9tsbUOhwx2epK1V0ZG9Ar4SHWUju04dhmzZXiSBXwBoleOvIfals33NAaWgagQVAL4Rbvx/Ptsu3P+pA09f6Q==}
 
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
@@ -2164,6 +2170,8 @@ packages:
         optional: true
 
 snapshots:
+
+  '@electric-sql/pglite@0.5.8': {}
 
   '@alloc/quick-lru@5.2.0': {}
 

@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { SlidersHorizontal, ImagePlus } from "lucide-react"
+import { SlidersHorizontal, ImagePlus, Database } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabase/client"
 import { SectionCard, EmptyState } from "./primitives"
 import { Button, Input, Field, Select } from "./controls"
 import { Toast } from "./toast"
@@ -173,6 +174,37 @@ function CompanyTab() {
   )
 }
 
+function SampleDataTab() {
+  const [loading, setLoading] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+
+  async function loadSamples() {
+    if (!window.confirm("Add fictional sample records to this organization? They will appear in dashboards and reports alongside existing records. Existing records will not be changed.")) return
+    setLoading(true)
+    try {
+      const { data, error } = await supabase.rpc("load_sample_workforce")
+      if (error) throw new Error(error.message)
+      setLoaded(true)
+      setToast(data?.created ? "Sample data added: 8 employees, 2 sites and 14 days of activity." : "Sample data has already been added to this organization.")
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Could not add sample data.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <SectionCard title="Sample data" description="Fictional workforce records. Included in dashboards and reports once added.">
+      <Button onClick={loadSamples} disabled={loading || loaded}>
+        <Database className="h-4 w-4" />
+        {loading ? "Adding sample data..." : loaded ? "Sample data added" : "Add sample data"}
+      </Button>
+      <Toast message={toast} onDismiss={() => setToast(null)} />
+    </SectionCard>
+  )
+}
+
 function TabContent({ id }: { id: string }) {
   const [saved, setSaved] = useState<string | null>(null)
 
@@ -183,6 +215,7 @@ function TabContent({ id }: { id: string }) {
 
   if (id === "account") return <AccountTab />
   if (id === "company") return <CompanyTab />
+  if (id === "sample-data") return <SampleDataTab />
 
   if (id === "notifications") {
     const rows = ["Fatigue alerts", "Late arrivals", "Device disconnections", "Weekly summary"]
@@ -231,12 +264,21 @@ function TabContent({ id }: { id: string }) {
 
 export function SettingsScreen({ tabs }: { tabs: SettingsTab[] }) {
   const [active, setActive] = useState(tabs[0]?.id)
+  const [canLoadSamples, setCanLoadSamples] = useState(false)
+
+  useEffect(() => {
+    getProfile().then((profile) => {
+      setCanLoadSamples(!!profile?.organization_id && (profile.role === "owner" || profile.role === "manager"))
+    }).catch(() => {})
+  }, [])
+
+  const visibleTabs = canLoadSamples ? [...tabs, { id: "sample-data", label: "Sample data" }] : tabs
 
   return (
     <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
       <aside className="rounded-xl border border-slate-200 bg-white p-2">
         <nav className="space-y-0.5">
-          {tabs.map((t) => (
+          {visibleTabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setActive(t.id)}

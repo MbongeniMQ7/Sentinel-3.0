@@ -1,8 +1,9 @@
 import React from "react"
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono, IBM_Plex_Sans } from 'next/font/google'
 import { Courier_Prime } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { PwaRegistration } from '@/components/pwa-registration'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -12,6 +13,9 @@ const _ibmPlexSans = IBM_Plex_Sans({ weight: ["300", "400", "500", "600"], subse
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sentinel-30.vercel.app'),
+  applicationName: 'SentinelAI Workforce',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: { capable: true, title: 'SentinelAI', statusBarStyle: 'default' },
   title: 'SentinelAI Workforce — See your workforce clearly',
   description: 'SentinelAI Workforce combines workforce management, attendance intelligence and fatigue indicators into one operational platform. Smart wristbands, biometric signals and activity patterns — unified.',
   keywords: ['workforce management', 'fatigue monitoring', 'attendance', 'workforce intelligence', 'biometric wristband'],
@@ -40,20 +44,19 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
+        url: '/pwa-192.png',
+        sizes: '192x192',
+        type: 'image/png',
       },
     ],
-    apple: '/apple-icon.png',
+    apple: '/pwa-apple-180.png',
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#0f2a4a',
 }
 
 export default function RootLayout({
@@ -65,6 +68,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans antialiased`}>
         {children}
+        <PwaRegistration />
         <Analytics />
       </body>
     </html>
