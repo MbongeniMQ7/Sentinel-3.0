@@ -18,6 +18,7 @@ import {
   UserRound,
   ClipboardList,
   Inbox,
+  MonitorDot,
 } from "lucide-react"
 
 export type Role = "owner" | "manager" | "employee"
@@ -42,6 +43,7 @@ export const OWNER_NAV: NavGroup[] = [
   {
     label: "Intelligence",
     items: [
+      { label: "Command Center", href: "/owner/monitor", icon: MonitorDot },
       { label: "Analytics", href: "/owner/analytics", icon: BarChart3 },
       { label: "Fatigue Monitoring", href: "/owner/fatigue", icon: ShieldAlert },
       { label: "Activity Patterns", href: "/owner/activity", icon: Activity },
@@ -82,6 +84,7 @@ export const MANAGER_NAV: NavGroup[] = [
   {
     label: "Intelligence",
     items: [
+      { label: "Command Center", href: "/manager/monitor", icon: MonitorDot },
       { label: "Fatigue Monitoring", href: "/manager/fatigue", icon: ShieldAlert },
       { label: "Activity Patterns", href: "/manager/activity", icon: Activity },
       { label: "Alerts", href: "/manager/alerts", icon: Bell },

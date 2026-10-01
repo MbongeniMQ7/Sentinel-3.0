@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Search, Users, Building2, Bell, Watch } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
-import type { Role } from "./nav-config"
+import { EMPLOYEE_NAV, MANAGER_NAV, OWNER_NAV, type Role } from "./nav-config"
 import { listEmployees, listSites, listFatigueAlerts, listDevices } from "@/lib/supabase/db"
 
 type Result = { id: string; title: string; subtitle: string; href: string; icon: LucideIcon }
@@ -14,6 +14,12 @@ const PAGES: Record<Role, Partial<Record<"employee" | "site" | "alert" | "device
   owner: { employee: "/owner/employees", site: "/owner/sites" },
   manager: { employee: "/manager/employees", alert: "/manager/alerts", device: "/manager/devices" },
   employee: { alert: "/employee/alerts" },
+}
+
+const NAV = {
+  owner: OWNER_NAV.flatMap((group) => group.items),
+  manager: MANAGER_NAV.flatMap((group) => group.items),
+  employee: EMPLOYEE_NAV,
 }
 
 export function CommandPalette({ role }: { role: Role }) {
@@ -28,6 +34,7 @@ export function CommandPalette({ role }: { role: Role }) {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault()
+        setActive(0)
         setOpen((v) => !v)
       }
       if (e.key === "Escape") setOpen(false)
@@ -41,7 +48,14 @@ export function CommandPalette({ role }: { role: Role }) {
     if (!open || loaded.current) return
     loaded.current = true
     const pages = PAGES[role]
-    const collected: Result[] = []
+    const collected: Result[] = NAV[role].map((item) => ({
+      id: `page-${item.href}`,
+      title: item.label,
+      subtitle: "Page",
+      href: item.href,
+      icon: item.icon,
+    }))
+    setItems(collected)
     const tasks: Promise<void>[] = []
 
     if (pages.employee) {
@@ -53,7 +67,7 @@ export function CommandPalette({ role }: { role: Role }) {
                 id: `emp-${r.id}`,
                 title: r.full_name || r.email || "Employee",
                 subtitle: r.site?.name ? `Employee · ${r.site.name}` : "Employee",
-                href: pages.employee!,
+                href: `${pages.employee}/${r.id}`,
                 icon: Users,
               }),
             ),
@@ -122,8 +136,6 @@ export function CommandPalette({ role }: { role: Role }) {
     return items.filter((r) => `${r.title} ${r.subtitle}`.toLowerCase().includes(q)).slice(0, 12)
   }, [items, query])
 
-  useEffect(() => setActive(0), [query, open])
-
   function go(r: Result) {
     setOpen(false)
     setQuery("")
@@ -138,6 +150,9 @@ export function CommandPalette({ role }: { role: Role }) {
       onClick={() => setOpen(false)}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search workspace"
         className="w-full max-w-xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -145,8 +160,12 @@ export function CommandPalette({ role }: { role: Role }) {
           <Search className="h-4 w-4 text-slate-400" />
           <input
             autoFocus
+            aria-label="Search pages and records"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setActive(0)
+            }}
             onKeyDown={(e) => {
               if (e.key === "ArrowDown") {
                 e.preventDefault()

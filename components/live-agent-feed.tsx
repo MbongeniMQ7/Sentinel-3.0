@@ -98,14 +98,9 @@ const SEED_ROWS: AgentRow[] = [
 
 export function LiveAgentFeed() {
   const [rows, setRows] = useState<AgentRow[]>(SEED_ROWS)
-  const [mounted, setMounted] = useState(false)
   const keyRef = useRef(100)
 
   useEffect(() => {
-    // Hydrate with random data only after client mount
-    setMounted(true)
-    setRows(Array.from({ length: 6 }, (_, i) => randomRow(i)))
-
     const t = setInterval(() => {
       keyRef.current++
       setRows(prev => [...prev.slice(1), randomRow(keyRef.current)])
@@ -197,10 +192,8 @@ export function LiveAgentFeed() {
 
 export function LiveAgentCounter() {
   const [count, setCount] = useState(3847)
-  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
     const t = setInterval(() => {
       setCount(v => v + Math.floor(Math.random() * 3 - 1))
     }, 1200)
@@ -217,7 +210,7 @@ export function LiveAgentCounter() {
       letterSpacing: "-0.02em",
       transition: "color 0.3s ease",
     }}>
-      {mounted ? count.toLocaleString("en-US") : "3,847"}
+      {count.toLocaleString("en-US")}
     </span>
   )
 }

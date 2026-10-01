@@ -1,11 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { ROLE_META } from "@/components/app/nav-config"
+import { supabase } from "./client"
 import { bootstrapSession, signOut as _signOut, type Profile } from "./db"
 
 export function useAuth() {
   const router = useRouter()
+  const pathname = usePathname()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -18,16 +21,29 @@ export function useAuth() {
           router.replace("/login")
           return
         }
+        const workspace = pathname.split("/")[1]
+        if (workspace !== p.role) {
+          router.replace(ROLE_META[p.role].home)
+          return
+        }
         setProfile(p)
         setLoading(false)
       })
       .catch(() => {
-        if (active) setLoading(false)
+        if (active) router.replace("/login")
       })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        setProfile(null)
+        setLoading(true)
+        router.replace("/login")
+      }
+    })
     return () => {
       active = false
+      subscription.unsubscribe()
     }
-  }, [router])
+  }, [router, pathname])
 
   async function signOut() {
     await _signOut()

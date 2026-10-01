@@ -78,25 +78,6 @@ function CodeLine({ line }: { line: (typeof STEPS)[0]["code"][0] }) {
     </div>
   )
   if (line.type === "plain") return <div className="text-[#111]">{line.text}</div>
-  if (line.type === "prop") return (
-    <div>
-      <span className="text-[#2563eb]">{line.key}</span>
-      <span className="text-[#111]">: </span>
-      <span className="text-[#16a34a]">{line.val}</span>
-      <span className="text-[#111]">,</span>
-    </div>
-  )
-  if (line.type === "keyword") return (
-    <div>
-      <span className="text-[#7c3aed]">{line.text}</span>
-      <span className="text-[#111]">{line.after}</span>
-      <span className="text-[#7c3aed]">{line.keyword2}</span>
-      {line.keyword3 && <span className="text-[#7c3aed]">{line.keyword3}</span>}
-      {line.fn && <span className="text-[#b45309]">{line.fn}</span>}
-      {line.args && <span className="text-[#111]">{line.args}</span>}
-      {line.string && <span className="text-[#16a34a]">{line.string}</span>}
-    </div>
-  )
   return null
 }
 

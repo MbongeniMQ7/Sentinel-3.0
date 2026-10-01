@@ -14,7 +14,7 @@ function formatElapsed(ms: number) {
 
 export function ClockInCard({ onChange }: { onChange?: () => void }) {
   const [record, setRecord] = useState<AttendanceRow | null>(null)
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(() => Date.now())
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -27,7 +27,6 @@ export function ClockInCard({ onChange }: { onChange?: () => void }) {
   useEffect(() => {
     if (!working) return
     const id = setInterval(() => setNow(Date.now()), 30000)
-    setNow(Date.now())
     return () => clearInterval(id)
   }, [working])
 
@@ -42,6 +41,7 @@ export function ClockInCard({ onChange }: { onChange?: () => void }) {
     setError(null)
     try {
       const next = working ? await clockOut() : await clockIn()
+      setNow(Date.now())
       setRecord(next)
       onChange?.()
     } catch (err) {

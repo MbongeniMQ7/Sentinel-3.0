@@ -29,6 +29,7 @@ import { SectionCard, EmptyState, RiskBadge, Badge } from "@/components/app/prim
 import { ClockInCard } from "@/components/app/clock-in-card"
 import { FadeIn, CountUp } from "@/components/app/motion"
 import { RevealText } from "@/components/reveal-text"
+import { useNow } from "@/hooks/use-live-vitals"
 import {
   getMyEmployee,
   listDevices,
@@ -65,6 +66,7 @@ const QUICK_LINKS = [
 ]
 
 export default function EmployeeHomePage() {
+  const now = useNow(60000)
   const [hours, setHours] = useState({ today: 0, week: 0, month: 0 })
   const [attendance, setAttendance] = useState<AttendanceRow[]>([])
   const [alerts, setAlerts] = useState<FatigueAlertRow[]>([])
@@ -97,7 +99,7 @@ export default function EmployeeHomePage() {
   const hoursChart = useMemo(() => {
     const days: { label: string; hours: number }[] = []
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(Date.now() - i * 86_400_000)
+      const d = new Date(now - i * 86_400_000)
       const date = d.toISOString().slice(0, 10)
       days.push({
         label: d.toLocaleDateString(undefined, { weekday: "short" }),
@@ -110,7 +112,7 @@ export default function EmployeeHomePage() {
       })
     }
     return days
-  }, [attendance])
+  }, [attendance, now])
 
   const hasHours = hoursChart.some((d) => d.hours > 0)
 

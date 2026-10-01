@@ -88,7 +88,7 @@ interface GlitchSceneProps {
 }
 
 function GlitchScene({ isHovered }: GlitchSceneProps) {
-  const { gl, scene, camera, size } = useThree()
+  const { get, size } = useThree()
   const meshRef = useRef<THREE.Mesh | null>(null)
   const materialRef = useRef<THREE.ShaderMaterial | null>(null)
 
@@ -98,7 +98,7 @@ function GlitchScene({ isHovered }: GlitchSceneProps) {
     waveY: 1.0,       // starts at top (UV y = 1)
     speed: 0.55,      // units per second across the 0-1 UV range
     cooldown: 0.0,    // seconds until next wave
-    nextCooldown: 2.0 + Math.random() * 2.0,
+    nextCooldown: 2.0,
   })
 
   const defaultTexture = useLoader(THREE.TextureLoader, "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/bg-nature-RN8PX1dGhZlLMsI4flnWQM6uInZYY1.png")
@@ -108,6 +108,7 @@ function GlitchScene({ isHovered }: GlitchSceneProps) {
 
   // Build scene geometry once
   useEffect(() => {
+    const { scene, camera } = get()
     const imageAspect  = defaultTexture.image.width / defaultTexture.image.height
     const screenAspect = size.width / size.height
     const frustumSize  = 1
@@ -149,8 +150,7 @@ function GlitchScene({ isHovered }: GlitchSceneProps) {
       geometry.dispose()
       material.dispose()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [size.width, size.height])
+  }, [size.width, size.height, get, defaultTexture, hoverTexture])
 
   // Keep textures in sync
   useEffect(() => {

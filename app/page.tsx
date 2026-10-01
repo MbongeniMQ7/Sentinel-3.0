@@ -429,17 +429,6 @@ export default function SentinelPage() {
             ))}
           </div>
 
-          {/* Legal links */}
-          <div className="flex items-center gap-6">
-            {[
-              { label: "Privacy", href: "#" },
-              { label: "Terms",   href: "#" },
-              { label: "Docs",    href: "#" },
-              { label: "GitHub",  href: "#" },
-            ].map(l => (
-              <a key={l.label} href={l.href} className="text-xs text-black/25 hover:text-black/55 transition-colors tracking-widest">{l.label}</a>
-            ))}
-          </div>
         </div>
         <div className="max-w-6xl mx-auto mt-8 pt-6 border-t border-black/[0.04]">
           <span className="text-xs text-black/20">© 2026 SentinelAI Workforce. All rights reserved.</span>

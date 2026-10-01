@@ -154,7 +154,7 @@ export function EmployeeDetail({ employeeId, backHref }: { employeeId: string; b
   const hoursToday = attendance
     .filter((a) => a.date === todayStr)
     .reduce((s, a) => s + Number(a.hours_worked || 0), 0)
-  const weekAgo = new Date(Date.now() - 6 * 86_400_000).toISOString().slice(0, 10)
+  const weekAgo = new Date(now - 6 * 86_400_000).toISOString().slice(0, 10)
   const hoursWeek = attendance
     .filter((a) => a.date >= weekAgo)
     .reduce((s, a) => s + Number(a.hours_worked || 0), 0)
@@ -162,7 +162,7 @@ export function EmployeeDetail({ employeeId, backHref }: { employeeId: string; b
   const hoursChart = useMemo(() => {
     const days: { date: string; label: string; hours: number }[] = []
     for (let i = 13; i >= 0; i--) {
-      const d = new Date(Date.now() - i * 86_400_000)
+      const d = new Date(now - i * 86_400_000)
       const date = d.toISOString().slice(0, 10)
       days.push({
         date,
@@ -171,7 +171,7 @@ export function EmployeeDetail({ employeeId, backHref }: { employeeId: string; b
       })
     }
     return days
-  }, [attendance])
+  }, [attendance, now])
 
   const fatigueTrend = useMemo(() => {
     const byDay = new Map<string, { sum: number; n: number }>()

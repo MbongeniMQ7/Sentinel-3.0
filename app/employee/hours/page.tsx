@@ -16,6 +16,7 @@ import {
 } from "recharts"
 import { PageHeader, MetricCard, SectionCard, EmptyState, DataTable, Badge } from "@/components/app/primitives"
 import { FadeIn } from "@/components/app/motion"
+import { useNow } from "@/hooks/use-live-vitals"
 import { myHoursSummary, listMyAttendance, subscribeTable, type AttendanceRow } from "@/lib/supabase/db"
 
 const EMERALD = "#059669"
@@ -27,6 +28,7 @@ function fmt(h: number) {
 }
 
 export default function EmployeeHoursPage() {
+  const now = useNow(60000)
   const [hours, setHours] = useState({ today: 0, week: 0, month: 0 })
   const [attendance, setAttendance] = useState<AttendanceRow[]>([])
 
@@ -47,7 +49,7 @@ export default function EmployeeHoursPage() {
   const trend = useMemo(() => {
     const days: { label: string; hours: number; regular: number; overtime: number }[] = []
     for (let i = 13; i >= 0; i--) {
-      const d = new Date(Date.now() - i * 86_400_000)
+      const d = new Date(now - i * 86_400_000)
       const date = d.toISOString().slice(0, 10)
       const recs = attendance.filter((a) => a.date === date)
       days.push({
@@ -58,7 +60,7 @@ export default function EmployeeHoursPage() {
       })
     }
     return days
-  }, [attendance])
+  }, [attendance, now])
 
   const hasTrend = trend.some((d) => d.hours > 0)
   const hasSplit = trend.some((d) => d.regular > 0 || d.overtime > 0)

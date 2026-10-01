@@ -120,8 +120,12 @@ export function AppShell({
   children: React.ReactNode
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { initial, displayName, signOut } = useAuth()
+  const { initial, displayName, signOut, loading, profile } = useAuth()
   const theme = THEMES[role]
+
+  if (loading || !profile || profile.role !== role) {
+    return <div role="status" className="p-6 text-sm text-slate-500">Loading workspace...</div>
+  }
 
   return (
     <div data-role={role} className="min-h-screen bg-slate-50 text-slate-900">
@@ -167,12 +171,13 @@ export function AppShell({
           <SearchTrigger />
 
           <div className="ml-auto flex items-center gap-1.5">
-            <button
+            <Link
+              href={role === "manager" ? "/manager/alerts" : role === "employee" ? "/employee/alerts" : "/owner/fatigue"}
               className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
-              aria-label="Notifications"
+              aria-label={role === "owner" ? "Fatigue alerts" : "Notifications"}
             >
               <Bell className="h-4.5 w-4.5" />
-            </button>
+            </Link>
             <div
               className="flex h-8 w-8 items-center justify-center rounded-full bg-(--brand) text-xs font-semibold text-white"
               title={displayName}
@@ -205,6 +210,7 @@ function SearchTrigger() {
   return (
     <button
       onClick={open}
+      aria-label="Search workspace"
       className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-400 transition-colors hover:bg-slate-50"
     >
       <Search className="h-4 w-4" />

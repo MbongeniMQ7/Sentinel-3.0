@@ -108,11 +108,12 @@ export async function getProfile(): Promise<Profile | null> {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return null
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("id, organization_id, email, role, first_name, last_name, phone, language")
     .eq("id", user.id)
     .maybeSingle()
+  if (error) throw error
   return (data as Profile) ?? null
 }
 
@@ -123,11 +124,16 @@ export async function bootstrapSession(): Promise<Profile | null> {
   } = await supabase.auth.getUser()
   if (!user) return null
   // Self-heal accounts that predate the profile trigger.
-  let profile = await getProfile()
+  const profile = await getProfile()
   if (!profile) {
-    await supabase.from("profiles").insert({ id: user.id, email: user.email, role: "employee" })
+    const { error } = await supabase.from("profiles").upsert(
+      { id: user.id, email: user.email, role: "employee" },
+      { onConflict: "id", ignoreDuplicates: true },
+    )
+    if (error) throw error
   }
-  await supabase.rpc("claim_invite")
+  const { error } = await supabase.rpc("claim_invite")
+  if (error) throw error
   return getProfile()
 }
 
@@ -358,6 +364,76 @@ export async function listFatigueAssessments(days = 7): Promise<FatigueAssessmen
   return (data as unknown as FatigueAssessmentRow[]) ?? []
 }
 
+// ─── Live monitoring wall (Command Center) ──────────────────────────────────
+export type FleetMember = {
+  employee_id: string
+  full_name: string | null
+  site_name: string | null
+  device_id: string | null
+  connection_status: "connected" | "disconnected" | "syncing" | null
+  battery_level: number | null
+  last_sync_time: string | null
+  latest: BiometricRow | null
+  risk_level: "low" | "moderate" | "high" | null
+  fatigue_score: number | null
+}
+
+// One row per active employee, combining their wristband, latest reading and
+// latest fatigue assessment — the data behind the live command-center wall.
+export async function listLiveFleet(): Promise<FleetMember[]> {
+  const [employees, devices, readings, assessments] = await Promise.all([
+    supabase.from("employees").select("id, full_name, status, site:sites(name)").eq("status", "active"),
+    supabase.from("devices").select("device_id, connection_status, battery_level, last_sync_time, employee_id"),
+    supabase
+      .from("biometric_readings")
+      .select("id, employee_id, reading_time, heart_rate, hrv, skin_temperature, movement, activity_score")
+      .order("reading_time", { ascending: false })
+      .limit(1500),
+    supabase
+      .from("fatigue_assessments")
+      .select("employee_id, risk_level, fatigue_score")
+      .order("assessed_at", { ascending: false })
+      .limit(1500),
+  ])
+
+  const deviceByEmp = new Map<string, any>()
+  for (const d of (devices.data as any[]) ?? []) if (d.employee_id && !deviceByEmp.has(d.employee_id)) deviceByEmp.set(d.employee_id, d)
+
+  const readingByEmp = new Map<string, any>()
+  for (const r of (readings.data as any[]) ?? []) if (!readingByEmp.has(r.employee_id)) readingByEmp.set(r.employee_id, r)
+
+  const assessByEmp = new Map<string, any>()
+  for (const a of (assessments.data as any[]) ?? []) if (!assessByEmp.has(a.employee_id)) assessByEmp.set(a.employee_id, a)
+
+  return ((employees.data as any[]) ?? []).map((e) => {
+    const d = deviceByEmp.get(e.id)
+    const r = readingByEmp.get(e.id)
+    const a = assessByEmp.get(e.id)
+    return {
+      employee_id: e.id,
+      full_name: e.full_name,
+      site_name: e.site?.name ?? null,
+      device_id: d?.device_id ?? null,
+      connection_status: d?.connection_status ?? null,
+      battery_level: d?.battery_level ?? null,
+      last_sync_time: d?.last_sync_time ?? null,
+      latest: r
+        ? {
+            id: r.id,
+            reading_time: r.reading_time,
+            heart_rate: r.heart_rate,
+            hrv: r.hrv,
+            skin_temperature: r.skin_temperature,
+            movement: r.movement,
+            activity_score: r.activity_score,
+          }
+        : null,
+      risk_level: a?.risk_level ?? null,
+      fatigue_score: a?.fatigue_score ?? null,
+    }
+  })
+}
+
 // ─── Employee drill-down (manager/owner views) ──────────────────────────────
 export async function getEmployee(id: string): Promise<EmployeeRow | null> {
   const { data } = await supabase
@@ -497,12 +573,13 @@ export async function clockOut(): Promise<AttendanceRow> {
 export async function listMyAttendance(limit = 30): Promise<AttendanceRow[]> {
   const emp = await getMyEmployee()
   if (!emp) return []
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("attendance_records")
     .select("*")
     .eq("employee_id", emp.id)
     .order("date", { ascending: false })
     .limit(limit)
+  if (error) throw error
   return (data as AttendanceRow[]) ?? []
 }
 

@@ -119,7 +119,7 @@ export default function OnboardingPage() {
 
           {current.id === "welcome" && (
             <p className="text-sm leading-relaxed text-slate-600">
-              Welcome to SentinelAI Workforce. We'll help you set up your company, add your team, configure shifts and
+              Welcome to SentinelAI Workforce. We&apos;ll help you set up your company, add your team, configure shifts and
               connect wristbands so you can see your workforce clearly. You can skip any step and complete it later.
             </p>
           )}
@@ -218,7 +218,7 @@ export default function OnboardingPage() {
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
                 <Check className="h-7 w-7 text-emerald-600" />
               </div>
-              <p className="text-lg font-semibold text-slate-900">You're all set</p>
+              <p className="text-lg font-semibold text-slate-900">You&apos;re all set</p>
               <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">
                 Your workspace is ready. Head to your dashboard to start monitoring your workforce.
               </p>

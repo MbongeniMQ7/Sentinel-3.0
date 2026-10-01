@@ -33,6 +33,7 @@ export default function LoginPage() {
       return
     }
     setLoading(true)
+    try {
     const { data, error } = await supabase.functions.invoke("request-otp", {
       body: { email: email.trim().toLowerCase() },
     })
@@ -45,6 +46,11 @@ export default function LoginPage() {
     setStep("code")
     setInfo(`We sent a 6-digit code to ${email}`)
     setTimeout(() => inputs.current[0]?.focus(), 50)
+    } catch {
+      setError("Could not send the code. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function verify(e?: React.FormEvent) {
@@ -55,6 +61,7 @@ export default function LoginPage() {
       return
     }
     setLoading(true)
+    try {
     const { data, error: fnError } = await supabase.functions.invoke("verify-otp", {
       body: { email: email.trim().toLowerCase(), code },
     })
@@ -69,11 +76,14 @@ export default function LoginPage() {
       setError(error.message)
       return
     }
-    // Claim any pending invite first so first-time users get their org + role
-    // linked before we decide which workspace to send them to.
     const profile = await bootstrapSession()
-    const role: Role = (profile?.role as Role) || "employee"
-    router.push(ROLE_META[role].home)
+    if (!profile) throw new Error("Your profile could not be loaded. Please try signing in again.")
+    router.replace(ROLE_META[profile.role].home)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not complete sign-in. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   function setDigit(i: number, v: string) {
@@ -193,7 +203,7 @@ export default function LoginPage() {
                 />
               </div>
 
-              {error && <p className="text-xs text-red-500/80">{error}</p>}
+              {error && <p role="alert" className="text-xs text-red-500/80">{error}</p>}
 
               <button
                 type="submit"
@@ -214,6 +224,8 @@ export default function LoginPage() {
                       inputs.current[i] = el
                     }}
                     inputMode="numeric"
+                    aria-label={`Code digit ${i + 1}`}
+                    autoComplete={i === 0 ? "one-time-code" : "off"}
                     maxLength={6}
                     value={d}
                     onChange={(e) => setDigit(i, e.target.value)}
@@ -223,7 +235,7 @@ export default function LoginPage() {
                 ))}
               </div>
 
-              {error && <p className="text-xs text-red-500/80">{error}</p>}
+              {error && <p role="alert" className="text-xs text-red-500/80">{error}</p>}
 
               <button
                 type="submit"

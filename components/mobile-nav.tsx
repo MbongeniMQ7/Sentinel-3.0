@@ -58,6 +58,8 @@ export function MobileNav() {
             {/* Burger — mobile only */}
             <button
               onClick={() => setOpen(v => !v)}
+              aria-expanded={open}
+              aria-controls="mobile-site-menu"
               className="md:hidden flex flex-col justify-center items-center w-8 h-8 gap-[5px] rounded-lg hover:bg-black/[0.04] transition-colors"
               aria-label={open ? "Close menu" : "Open menu"}
             >
@@ -89,6 +91,9 @@ export function MobileNav() {
 
         {/* Mobile dropdown */}
         <div
+          id="mobile-site-menu"
+          aria-hidden={!open}
+          inert={!open}
           className="md:hidden mt-2 overflow-hidden transition-all duration-300 ease-in-out"
           style={{ maxHeight: open ? "320px" : "0px", opacity: open ? 1 : 0 }}
         >

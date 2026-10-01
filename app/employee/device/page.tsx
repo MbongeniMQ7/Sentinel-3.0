@@ -5,13 +5,16 @@ import { Watch, Battery, Wifi, HeartPulse, Activity, Thermometer, Footprints } f
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts"
 import { PageHeader, SectionCard, EmptyState, Badge } from "@/components/app/primitives"
 import { FadeIn } from "@/components/app/motion"
+import { LiveWatch } from "@/components/app/live-watch"
 import {
   getMyEmployee,
   listDevices,
   listMyBiometrics,
+  listEmployeeAssessments,
   subscribeTable,
   type BiometricRow,
   type DeviceRow,
+  type FatigueAssessmentRow,
 } from "@/lib/supabase/db"
 import { useLiveVitals, useNow, timeAgo } from "@/hooks/use-live-vitals"
 
@@ -56,6 +59,7 @@ function VitalCard({
 export default function EmployeeDevicePage() {
   const [device, setDevice] = useState<DeviceRow | null>(null)
   const [readings, setReadings] = useState<BiometricRow[]>([])
+  const [assessment, setAssessment] = useState<FatigueAssessmentRow | null>(null)
 
   const load = useCallback(() => {
     ;(async () => {
@@ -64,6 +68,7 @@ export default function EmployeeDevicePage() {
       const devices = await listDevices()
       setDevice(devices.find((d) => d.employee_id === emp.id) ?? null)
       setReadings(await listMyBiometrics(24))
+      setAssessment((await listEmployeeAssessments(emp.id))[0] ?? null)
     })().catch(() => {})
   }, [])
 
@@ -71,9 +76,11 @@ export default function EmployeeDevicePage() {
     load()
     const a = subscribeTable("devices", load)
     const b = subscribeTable("biometric_readings", load)
+    const c = subscribeTable("fatigue_assessments", load)
     return () => {
       a()
       b()
+      c()
     }
   }, [load])
 
@@ -147,11 +154,22 @@ export default function EmployeeDevicePage() {
           action={streaming && latest ? <LivePulse /> : undefined}
         >
           {latest ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <VitalCard icon={HeartPulse} label="Heart Rate" value={live.heart_rate ?? latest.heart_rate ?? "—"} unit="bpm" />
-              <VitalCard icon={Activity} label="HRV" value={live.hrv ?? latest.hrv ?? "—"} unit="ms" />
-              <VitalCard icon={Thermometer} label="Skin Temp" value={live.skin_temperature ?? latest.skin_temperature ?? "—"} unit="°C" />
-              <VitalCard icon={Footprints} label="Movement" value={latest.movement ?? "—"} />
+            <div className="grid items-center gap-6 sm:grid-cols-[auto_1fr]">
+              <div className="flex justify-center rounded-2xl bg-slate-950/[0.03] p-4">
+                <LiveWatch
+                  base={latest}
+                  riskLevel={assessment?.risk_level ?? "low"}
+                  fatigueScore={assessment?.fatigue_score}
+                  connected={streaming}
+                  size="md"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
+                <VitalCard icon={HeartPulse} label="Heart Rate" value={live.heart_rate ?? latest.heart_rate ?? "—"} unit="bpm" />
+                <VitalCard icon={Activity} label="HRV" value={live.hrv ?? latest.hrv ?? "—"} unit="ms" />
+                <VitalCard icon={Thermometer} label="Skin Temp" value={live.skin_temperature ?? latest.skin_temperature ?? "—"} unit="°C" />
+                <VitalCard icon={Footprints} label="Movement" value={latest.movement ?? "—"} />
+              </div>
             </div>
           ) : (
             <EmptyState
