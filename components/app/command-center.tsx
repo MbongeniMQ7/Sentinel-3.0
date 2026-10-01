@@ -20,10 +20,13 @@ import {
   Pause,
 } from "lucide-react"
 import { LiveWatch } from "@/components/app/live-watch"
+import { WorkforcePulse } from "@/components/app/workforce-pulse"
+import { SiteMap } from "@/components/app/site-map"
+import { DigitalTwin } from "@/components/app/digital-twin"
 import { listLiveFleet, subscribeTable, type FleetMember } from "@/lib/supabase/db"
 
 type RiskFilter = "all" | "high" | "moderate" | "low"
-type View = "wall" | "map"
+type View = "wall" | "map" | "site"
 const RISK_RANK: Record<string, number> = { high: 0, moderate: 1, low: 2 }
 const RISK_COLOR: Record<string, string> = { low: "#10b981", moderate: "#f59e0b", high: "#ef4444" }
 
@@ -96,6 +99,7 @@ export function CommandCenter() {
   const [muted, setMuted] = useState(true)
   const [demo, setDemo] = useState(false)
   const [demoPhase, setDemoPhase] = useState(0.33)
+  const [twin, setTwin] = useState<FleetMember | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const prevHighRef = useRef<Set<string>>(new Set())
 
@@ -277,6 +281,12 @@ export function CommandCenter() {
             >
               <MapIcon className="h-3.5 w-3.5" /> Map
             </button>
+            <button
+              onClick={() => setView("site")}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition ${view === "site" ? "bg-white/15 text-white" : "text-white/50 hover:text-white/80"}`}
+            >
+              <MapIcon className="h-3.5 w-3.5" /> Site
+            </button>
           </div>
           <select
             value={site}
@@ -336,6 +346,15 @@ export function CommandCenter() {
         <StatTile icon={ShieldAlert} label="High risk" value={stats.high} accent="#ef4444" />
       </div>
 
+      {/* Pulse of the workforce */}
+      <div className="mb-6 overflow-hidden rounded-xl border border-white/10 bg-white/3 px-4 py-3">
+        <div className="mb-1 flex items-center justify-between">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">Pulse of the workforce</span>
+          <span className="text-xs text-white/60 tabular-nums">{stats.avgHr || "—"} bpm avg</span>
+        </div>
+        <WorkforcePulse bpm={stats.avgHr || 70} color={stats.high > 0 ? "#ef4444" : "#38bdf8"} />
+      </div>
+
       {/* Anomaly spotlight */}
       {anomaly && (
         <div
@@ -366,18 +385,21 @@ export function CommandCenter() {
       ) : view === "wall" ? (
         <div className="grid grid-cols-2 justify-items-center gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {visible.map((m) => (
-            <LiveWatch
-              key={m.employee_id}
-              base={m.latest}
-              riskLevel={m.risk_level}
-              fatigueScore={m.fatigue_score}
-              name={m.full_name || "Unassigned"}
-              deviceId={m.device_id}
-              connected={m.connection_status === "connected"}
-              size="sm"
-            />
+            <button key={m.employee_id} onClick={() => setTwin(m)} className="transition hover:scale-[1.03]">
+              <LiveWatch
+                base={m.latest}
+                riskLevel={m.risk_level}
+                fatigueScore={m.fatigue_score}
+                name={m.full_name || "Unassigned"}
+                deviceId={m.device_id}
+                connected={m.connection_status === "connected"}
+                size="sm"
+              />
+            </button>
           ))}
         </div>
+      ) : view === "site" ? (
+        <SiteMap members={visible} />
       ) : (
         <div className="space-y-5">
           {mapGroups.map(([siteName, members]) => (
@@ -399,6 +421,8 @@ export function CommandCenter() {
         @keyframes heartDot { 0% { transform: scale(0.6); opacity: 0.7 } 100% { transform: scale(2.6); opacity: 0 } }
         @keyframes spotlightPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0) } 50% { box-shadow: 0 0 22px -4px rgba(239,68,68,0.4) } }
       `}</style>
+
+      {twin && <DigitalTwin member={twin} onClose={() => setTwin(null)} />}
     </div>
   )
 }

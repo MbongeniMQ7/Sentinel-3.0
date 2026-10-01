@@ -11,6 +11,7 @@ import { StackingAgentCards } from "@/components/stacking-agent-cards"
 import { MobileNav } from "@/components/mobile-nav"
 import { DevExSection } from "@/components/devex-section"
 import { LiveWatch } from "@/components/app/live-watch"
+import { WristbandMockup } from "@/components/wristband-mockup"
 import type { BiometricRow } from "@/lib/supabase/db"
 
 // Demo smartwatch for the marketing hero — not tied to a signed-in user.
@@ -24,9 +25,33 @@ const HERO_READING: BiometricRow = {
   activity_score: 64,
 }
 
+// Hero watch with holographic cursor-parallax tilt.
 function HeroWatch() {
-  return <LiveWatch base={HERO_READING} riskLevel="low" fatigueScore={28} connected size="lg" />
+  const [tilt, setTilt] = useState({ x: 0, y: 0 })
+  return (
+    <div
+      style={{ perspective: 900 }}
+      onMouseMove={(e) => {
+        const r = e.currentTarget.getBoundingClientRect()
+        const px = (e.clientX - r.left) / r.width - 0.5
+        const py = (e.clientY - r.top) / r.height - 0.5
+        setTilt({ x: -py * 16, y: px * 16 })
+      }}
+      onMouseLeave={() => setTilt({ x: 0, y: 0 })}
+    >
+      <div
+        style={{
+          transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+          transformStyle: "preserve-3d",
+          transition: "transform 0.15s ease-out",
+        }}
+      >
+        <LiveWatch base={HERO_READING} riskLevel="low" fatigueScore={28} connected size="lg" />
+      </div>
+    </div>
+  )
 }
+
 
 
 // ─── Intersection Observer hook ──────────────────────────────────────────────
@@ -304,6 +329,19 @@ export default function SentinelPage() {
             <RevealText className="mt-5 text-4xl md:text-5xl font-light tracking-tight leading-[1.05]">
               {"From wristband to insight\nin four steps."}
             </RevealText>
+          </div>
+
+          <div className="mb-16 grid items-center gap-10 md:grid-cols-2">
+            <div className="rounded-3xl border border-black/[0.07] bg-[#0a0e16] p-8">
+              <WristbandMockup />
+            </div>
+            <div>
+              <Tag>THE WRISTBAND</Tag>
+              <h3 className="mt-4 text-2xl md:text-3xl font-light tracking-tight">A band that streams vitals in real time.</h3>
+              <p className="mt-4 text-sm text-black/50 leading-relaxed max-w-md">
+                Heart rate, HRV, skin temperature and movement broadcast securely from each wrist — the live signal behind every fatigue score in Sentinel.
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3" onMouseMove={handleMouse}>
