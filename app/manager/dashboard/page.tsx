@@ -6,8 +6,6 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
-  LineChart,
-  Line,
   BarChart,
   Bar,
   PieChart,
@@ -51,6 +49,25 @@ import {
 
 const SKY = "#0284c7"
 const RISK_COLORS = ["#22c55e", "#f59e0b", "#ef4444"]
+const RISK_LABELS = ["Low", "Moderate", "High"]
+
+// Branded tooltip shared by the dashboard charts.
+function ChartTooltip({ active, payload, label, unit = "" }: any) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white/95 px-3 py-2 shadow-lg backdrop-blur">
+      {label != null && <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-slate-400">{label}</p>}
+      {payload.map((p: any, i: number) => (
+        <p key={i} className="flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+          <span className="h-2 w-2 rounded-full" style={{ background: p.color || p.payload?.fill || SKY }} />
+          {p.name}: {typeof p.value === "number" ? p.value.toLocaleString(undefined, { maximumFractionDigits: 1 }) : p.value}
+          {unit}
+        </p>
+      ))}
+    </div>
+  )
+}
+
 
 function greeting() {
   const h = new Date().getHours()
@@ -195,19 +212,33 @@ export default function ManagerDashboard() {
         <FadeIn delay={40}>
           <SectionCard title="Workforce Activity" description="Hours worked across your team, last 7 days">
             {hasHours ? (
-              <ResponsiveContainer width="100%" height={240}>
-                <AreaChart data={analytics!.hoursTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <ResponsiveContainer width="100%" height={260}>
+                <AreaChart data={analytics!.hoursTrend} margin={{ top: 10, right: 12, left: -12, bottom: 0 }}>
                   <defs>
                     <linearGradient id="mgrHoursFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={SKY} stopOpacity={0.28} />
+                      <stop offset="0%" stopColor={SKY} stopOpacity={0.35} />
                       <stop offset="100%" stopColor={SKY} stopOpacity={0} />
                     </linearGradient>
+                    <linearGradient id="mgrHoursStroke" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#38bdf8" />
+                      <stop offset="100%" stopColor="#0369a1" />
+                    </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eef1f5" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="hours" stroke={SKY} strokeWidth={2} fill="url(#mgrHoursFill)" />
+                  <CartesianGrid strokeDasharray="4 4" stroke="#eef1f5" vertical={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} dy={6} />
+                  <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={34} />
+                  <Tooltip content={<ChartTooltip unit="h" />} cursor={{ stroke: "#cbd5e1", strokeDasharray: "4 4" }} />
+                  <Area
+                    type="monotone"
+                    dataKey="hours"
+                    name="Hours"
+                    stroke="url(#mgrHoursStroke)"
+                    strokeWidth={3}
+                    fill="url(#mgrHoursFill)"
+                    dot={false}
+                    activeDot={{ r: 5, strokeWidth: 2, stroke: "#fff", fill: SKY }}
+                    animationDuration={900}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -219,14 +250,30 @@ export default function ManagerDashboard() {
         <FadeIn delay={100}>
           <SectionCard title="People on Shift" description="Team members present per day">
             {hasActivity ? (
-              <ResponsiveContainer width="100%" height={240}>
-                <LineChart data={analytics!.activityTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eef1f5" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="present" stroke={SKY} strokeWidth={2} dot={{ r: 3 }} />
-                </LineChart>
+              <ResponsiveContainer width="100%" height={260}>
+                <AreaChart data={analytics!.activityTrend} margin={{ top: 10, right: 12, left: -12, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="mgrPresentFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="4 4" stroke="#eef1f5" vertical={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} dy={6} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={28} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ stroke: "#cbd5e1", strokeDasharray: "4 4" }} />
+                  <Area
+                    type="monotone"
+                    dataKey="present"
+                    name="Present"
+                    stroke="#6366f1"
+                    strokeWidth={3}
+                    fill="url(#mgrPresentFill)"
+                    dot={{ r: 3, strokeWidth: 2, stroke: "#fff", fill: "#6366f1" }}
+                    activeDot={{ r: 5, strokeWidth: 2, stroke: "#fff", fill: "#6366f1" }}
+                    animationDuration={900}
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             ) : (
               <EmptyState icon={Activity} title="No activity data yet." description="Attendance patterns build up as shifts are worked." />
@@ -237,16 +284,44 @@ export default function ManagerDashboard() {
         <FadeIn delay={40}>
           <SectionCard title="Fatigue Risk" description="Latest assessment per employee">
             {hasRisk ? (
-              <ResponsiveContainer width="100%" height={240}>
-                <PieChart>
-                  <Pie data={analytics!.riskDistribution} dataKey="value" nameKey="name" innerRadius={48} outerRadius={84} paddingAngle={2}>
-                    {analytics!.riskDistribution.map((_, i) => (
-                      <Cell key={i} fill={RISK_COLORS[i]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="relative">
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie
+                      data={analytics!.riskDistribution}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={64}
+                      outerRadius={96}
+                      paddingAngle={3}
+                      cornerRadius={6}
+                      stroke="none"
+                      animationDuration={900}
+                    >
+                      {analytics!.riskDistribution.map((_, i) => (
+                        <Cell key={i} fill={RISK_COLORS[i]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<ChartTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Center total */}
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-3xl font-semibold tracking-tight text-slate-900">
+                    {analytics!.riskDistribution.reduce((s, d) => s + d.value, 0)}
+                  </span>
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-slate-400">Assessed</span>
+                </div>
+                {/* Legend */}
+                <div className="mt-3 flex flex-wrap justify-center gap-4">
+                  {analytics!.riskDistribution.map((d, i) => (
+                    <span key={i} className="inline-flex items-center gap-1.5 text-xs text-slate-600">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ background: RISK_COLORS[i] }} />
+                      {RISK_LABELS[i]} <span className="font-semibold text-slate-800">{d.value}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
             ) : (
               <EmptyState icon={ShieldAlert} title="No fatigue data yet." description="Risk levels appear once devices report activity." />
             )}
@@ -256,13 +331,19 @@ export default function ManagerDashboard() {
         <FadeIn delay={100}>
           <SectionCard title="Site Load" description="Hours worked per site, last 7 days">
             {hasSites ? (
-              <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={analytics!.hoursBySite} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eef1f5" vertical={false} />
-                  <XAxis dataKey="site" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                  <Tooltip />
-                  <Bar dataKey="hours" fill={SKY} radius={[6, 6, 0, 0]} />
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={analytics!.hoursBySite} margin={{ top: 10, right: 12, left: -12, bottom: 0 }} barCategoryGap={"28%"}>
+                  <defs>
+                    <linearGradient id="mgrSiteFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#38bdf8" />
+                      <stop offset="100%" stopColor="#0369a1" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="4 4" stroke="#eef1f5" vertical={false} />
+                  <XAxis dataKey="site" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} dy={6} />
+                  <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={34} />
+                  <Tooltip content={<ChartTooltip unit="h" />} cursor={{ fill: "rgba(2,132,199,0.06)" }} />
+                  <Bar dataKey="hours" name="Hours" fill="url(#mgrSiteFill)" radius={[8, 8, 0, 0]} maxBarSize={56} animationDuration={900} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
