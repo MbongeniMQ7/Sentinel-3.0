@@ -156,7 +156,7 @@ export function CommandCenter() {
               heart_rate: hr,
               hrv: Math.round(85 - (hr - 55) * 0.6),
               skin_temperature: Number((36.2 + (hr - 55) * 0.012).toFixed(1)),
-              movement: hr > 95 ? "high" : hr > 75 ? "moderate" : "low",
+              movement: (hr > 95 ? "high" : hr > 75 ? "moderate" : "low") as "low" | "moderate" | "high",
               activity_score: Math.min(100, hr - 20),
             },
       }
