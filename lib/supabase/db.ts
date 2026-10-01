@@ -289,6 +289,20 @@ export async function deleteEmployee(employeeId: string) {
   if (error) throw error
 }
 
+// Managers/owners edit an employee's core details, including their photo.
+export async function updateEmployee(
+  employeeId: string,
+  input: { full_name?: string; role_title?: string | null; site_id?: string | null; photo_url?: string | null },
+) {
+  const patch: Record<string, unknown> = {}
+  if (input.full_name !== undefined) patch.full_name = input.full_name
+  if (input.role_title !== undefined) patch.role_title = input.role_title
+  if (input.site_id !== undefined) patch.site_id = input.site_id
+  if (input.photo_url !== undefined) patch.photo_url = input.photo_url
+  const { error } = await supabase.from("employees").update(patch).eq("id", employeeId)
+  if (error) throw error
+}
+
 // ─── Shifts ─────────────────────────────────────────────────────────────────
 export async function listShifts(): Promise<ShiftRow[]> {
   const { data } = await supabase

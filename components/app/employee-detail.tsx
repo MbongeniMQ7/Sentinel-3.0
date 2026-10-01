@@ -17,6 +17,7 @@ import {
   Activity,
   Thermometer,
   Footprints,
+  Pencil,
 } from "lucide-react"
 import {
   ResponsiveContainer,
@@ -30,6 +31,8 @@ import {
   CartesianGrid,
 } from "recharts"
 import { PageHeader, SectionCard, EmptyState, MetricCard, Badge, RiskBadge } from "@/components/app/primitives"
+import { Button } from "@/components/app/controls"
+import { EditEmployeeModal } from "@/components/app/edit-employee-modal"
 import { cn } from "@/lib/utils"
 import { useLiveVitals, useNow, timeAgo } from "@/hooks/use-live-vitals"
 import {
@@ -124,6 +127,7 @@ export function EmployeeDetail({ employeeId, backHref }: { employeeId: string; b
   const [attendance, setAttendance] = useState<AttendanceRow[]>([])
   const [assessments, setAssessments] = useState<FatigueAssessmentRow[]>([])
   const [alerts, setAlerts] = useState<FatigueAlertRow[]>([])
+  const [editOpen, setEditOpen] = useState(false)
   const now = useNow(1000)
 
   const load = useCallback(() => {
@@ -209,8 +213,25 @@ export function EmployeeDetail({ employeeId, backHref }: { employeeId: string; b
             : "Loading employee…"
         }
         actions={
-          employee ? <Badge tone={employee.status === "active" ? "green" : "slate"}>{employee.status}</Badge> : undefined
+          employee ? (
+            <div className="flex items-center gap-2">
+              <Badge tone={employee.status === "active" ? "green" : "slate"}>{employee.status}</Badge>
+              <Button variant="secondary" onClick={() => setEditOpen(true)}>
+                <Pencil className="mr-1.5 h-4 w-4" /> Edit
+              </Button>
+            </div>
+          ) : undefined
         }
+      />
+
+      <EditEmployeeModal
+        employee={employee}
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        onSaved={() => {
+          setEditOpen(false)
+          load()
+        }}
       />
 
       <div className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-200">
@@ -251,7 +272,15 @@ export function EmployeeDetail({ employeeId, backHref }: { employeeId: string; b
 
           <SectionCard title="Profile">
             {employee ? (
-              <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-50">
+                  {employee.photo_url ? (
+                    <img src={employee.photo_url} alt={employee.full_name || "Employee"} className="h-full w-full object-cover" />
+                  ) : (
+                    <UserRound className="h-9 w-9 text-slate-300" />
+                  )}
+                </div>
+                <dl className="grid flex-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
                 <div>
                   <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Full name</dt>
                   <dd className="mt-0.5 font-medium text-slate-900">{employee.full_name || "—"}</dd>
@@ -279,6 +308,7 @@ export function EmployeeDetail({ employeeId, backHref }: { employeeId: string; b
                   <dd className="mt-0.5 text-slate-700">{new Date(employee.created_at).toLocaleDateString()}</dd>
                 </div>
               </dl>
+              </div>
             ) : (
               <EmptyState icon={UserRound} title="Employee not found." description="This person may have been removed." />
             )}
