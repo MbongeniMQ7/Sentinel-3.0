@@ -59,12 +59,28 @@ export function DigitalTwin({ member, onClose }: { member: FleetMember; onClose:
           <X className="h-4 w-4" />
         </button>
 
-        <div className="mb-6">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em]" style={{ color }}>
-            Digital Twin
-          </p>
-          <h2 className="mt-1 text-2xl font-semibold text-white">{member.full_name || "Unassigned"}</h2>
-          <p className="text-sm text-white/50">{member.site_name ?? "No site"} · {member.device_id ?? "No device"}</p>
+        <div className="mb-6 flex items-center gap-4">
+          <div
+            className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2"
+            style={{ borderColor: color }}
+          >
+            {member.photo_url ? (
+              <img src={member.photo_url} alt={member.full_name || "Employee"} className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-xl font-semibold text-white/80">
+                {(member.full_name || "?").charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em]" style={{ color }}>
+              Digital Twin
+            </p>
+            <h2 className="mt-0.5 truncate text-2xl font-semibold text-white">{member.full_name || "Unassigned"}</h2>
+            <p className="truncate text-sm text-white/50">
+              {member.site_name ?? "No site"} · {member.device_id ?? "No device"}
+            </p>
+          </div>
         </div>
 
         <div className="grid gap-7 md:grid-cols-[auto_1fr]">

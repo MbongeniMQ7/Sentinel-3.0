@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { UserRound, Upload, X } from "lucide-react"
 import { Modal } from "./modal"
 import { Button, Input, Select, Field } from "./controls"
-import { createEmployee, listSites, type Site } from "@/lib/supabase/db"
+import { createEmployee, listSites, uploadEmployeePhoto, type Site } from "@/lib/supabase/db"
 
 export function AddEmployeeModal({
   open,
@@ -19,18 +20,32 @@ export function AddEmployeeModal({
   const [role, setRole] = useState<"employee" | "manager">("employee")
   const [site, setSite] = useState("")
   const [sites, setSites] = useState<Site[]>([])
+  const [photo, setPhoto] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string>("")
   const [errors, setErrors] = useState<{ name?: string; email?: string; form?: string }>({})
   const [saving, setSaving] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (open) listSites().then(setSites).catch(() => setSites([]))
   }, [open])
+
+  useEffect(() => {
+    if (!photo) {
+      setPhotoPreview("")
+      return
+    }
+    const url = URL.createObjectURL(photo)
+    setPhotoPreview(url)
+    return () => URL.revokeObjectURL(url)
+  }, [photo])
 
   function reset() {
     setName("")
     setEmail("")
     setRole("employee")
     setSite("")
+    setPhoto(null)
     setErrors({})
   }
 
@@ -44,7 +59,8 @@ export function AddEmployeeModal({
     if (Object.keys(next).length > 0) return
     setSaving(true)
     try {
-      await createEmployee({ full_name: name.trim(), email: email.trim(), invited_role: role, site_id: site || null })
+      const photo_url = photo ? await uploadEmployeePhoto(photo) : null
+      await createEmployee({ full_name: name.trim(), email: email.trim(), invited_role: role, site_id: site || null, photo_url })
       reset()
       onClose()
       onSubmitted?.()
@@ -82,6 +98,36 @@ export function AddEmployeeModal({
       }
     >
       <form id="add-employee-form" onSubmit={submit} className="space-y-4" noValidate>
+        <Field label="Photo" hint="Shown on their live watch profile. JPG or PNG, up to 3MB.">
+          <div className="flex items-center gap-4">
+            <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-50">
+              {photoPreview ? (
+                <img src={photoPreview} alt="Preview" className="h-full w-full object-cover" />
+              ) : (
+                <UserRound className="h-7 w-7 text-slate-300" />
+              )}
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+            />
+            <Button type="button" variant="secondary" onClick={() => fileRef.current?.click()}>
+              <Upload className="mr-1.5 h-4 w-4" /> {photo ? "Change" : "Upload"}
+            </Button>
+            {photo && (
+              <button
+                type="button"
+                onClick={() => setPhoto(null)}
+                className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800"
+              >
+                <X className="h-3.5 w-3.5" /> Remove
+              </button>
+            )}
+          </div>
+        </Field>
         <Field label="Full name" required error={errors.name}>
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Jordan Smith" />
         </Field>

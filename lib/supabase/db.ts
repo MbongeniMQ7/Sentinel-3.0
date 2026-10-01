@@ -32,6 +32,7 @@ export type EmployeeRow = {
   role_title: string | null
   site_id: string | null
   user_id: string | null
+  photo_url: string | null
   created_at: string
   site?: { name: string | null } | null
 }
@@ -220,9 +221,23 @@ export async function createSite(input: { name: string; location?: string; timez
 export async function listEmployees(): Promise<EmployeeRow[]> {
   const { data } = await supabase
     .from("employees")
-    .select("id, full_name, email, invited_role, status, role_title, site_id, user_id, created_at, site:sites(name)")
+    .select("id, full_name, email, invited_role, status, role_title, site_id, user_id, photo_url, created_at, site:sites(name)")
     .order("created_at", { ascending: false })
   return (data as unknown as EmployeeRow[]) ?? []
+}
+
+// Uploads an employee photo to the employee-photos bucket and returns its URL.
+export async function uploadEmployeePhoto(file: File): Promise<string> {
+  const orgId = await requireOrg()
+  if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.")
+  if (file.size > 3 * 1024 * 1024) throw new Error("Photo must be 3MB or smaller.")
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase()
+  const path = `${orgId}/${crypto.randomUUID()}.${ext}`
+  const { error: uploadError } = await supabase.storage
+    .from("employee-photos")
+    .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" })
+  if (uploadError) throw uploadError
+  return supabase.storage.from("employee-photos").getPublicUrl(path).data.publicUrl
 }
 
 export async function createEmployee(input: {
@@ -230,6 +245,7 @@ export async function createEmployee(input: {
   email: string
   invited_role: Role
   site_id?: string | null
+  photo_url?: string | null
 }) {
   const organization_id = await requireOrg()
   const { data, error } = await supabase
@@ -241,6 +257,7 @@ export async function createEmployee(input: {
       invited_role: input.invited_role,
       role_title: input.invited_role === "manager" ? "Manager" : "Employee",
       site_id: input.site_id || null,
+      photo_url: input.photo_url || null,
     })
     .select()
     .single()
@@ -369,6 +386,7 @@ export type FleetMember = {
   employee_id: string
   full_name: string | null
   site_name: string | null
+  photo_url: string | null
   device_id: string | null
   connection_status: "connected" | "disconnected" | "syncing" | null
   battery_level: number | null
@@ -382,7 +400,7 @@ export type FleetMember = {
 // latest fatigue assessment — the data behind the live command-center wall.
 export async function listLiveFleet(): Promise<FleetMember[]> {
   const [employees, devices, readings, assessments] = await Promise.all([
-    supabase.from("employees").select("id, full_name, status, site:sites(name)").eq("status", "active"),
+    supabase.from("employees").select("id, full_name, status, photo_url, site:sites(name)").eq("status", "active"),
     supabase.from("devices").select("device_id, connection_status, battery_level, last_sync_time, employee_id"),
     supabase
       .from("biometric_readings")
@@ -413,6 +431,7 @@ export async function listLiveFleet(): Promise<FleetMember[]> {
       employee_id: e.id,
       full_name: e.full_name,
       site_name: e.site?.name ?? null,
+      photo_url: e.photo_url ?? null,
       device_id: d?.device_id ?? null,
       connection_status: d?.connection_status ?? null,
       battery_level: d?.battery_level ?? null,
@@ -438,7 +457,7 @@ export async function listLiveFleet(): Promise<FleetMember[]> {
 export async function getEmployee(id: string): Promise<EmployeeRow | null> {
   const { data } = await supabase
     .from("employees")
-    .select("id, full_name, email, invited_role, status, role_title, site_id, user_id, created_at, site:sites(name)")
+    .select("id, full_name, email, invited_role, status, role_title, site_id, user_id, photo_url, created_at, site:sites(name)")
     .eq("id", id)
     .maybeSingle()
   return (data as unknown as EmployeeRow) ?? null
@@ -503,7 +522,7 @@ export async function getMyEmployee(): Promise<EmployeeRow | null> {
   if (!user) return null
   const { data } = await supabase
     .from("employees")
-    .select("id, full_name, email, invited_role, status, role_title, site_id, user_id, organization_id, created_at")
+    .select("id, full_name, email, invited_role, status, role_title, site_id, user_id, photo_url, organization_id, created_at")
     .eq("user_id", user.id)
     .maybeSingle()
   return (data as unknown as EmployeeRow) ?? null
