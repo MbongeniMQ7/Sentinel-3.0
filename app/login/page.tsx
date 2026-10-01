@@ -19,10 +19,20 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [info, setInfo] = useState("")
+  const [poppedIndex, setPoppedIndex] = useState<number | null>(null)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [shake, setShake] = useState(false)
   const inputs = useRef<(HTMLInputElement | null)[]>([])
 
   const code = digits.join("")
+  const complete = code.length === 6
   const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
+  function triggerShake() {
+    setShake(false)
+    requestAnimationFrame(() => setShake(true))
+    setTimeout(() => setShake(false), 450)
+  }
 
   async function sendCode(e?: React.FormEvent) {
     e?.preventDefault()
@@ -67,6 +77,7 @@ export default function LoginPage() {
     })
     if (fnError || !data?.ok || !data?.token_hash) {
       setLoading(false)
+      triggerShake()
       setError(data?.error || "Incorrect code. Please try again.")
       return
     }
@@ -102,6 +113,8 @@ export default function LoginPage() {
       return next
     })
     const jump = Math.min(i + clean.length, 5)
+    setPoppedIndex(i)
+    setTimeout(() => setPoppedIndex(null), 180)
     inputs.current[jump]?.focus()
   }
 
@@ -216,23 +229,65 @@ export default function LoginPage() {
             </form>
           ) : (
             <form onSubmit={verify} className="mt-8 space-y-5" noValidate>
-              <div className="flex justify-between gap-2">
-                {digits.map((d, i) => (
-                  <input
-                    key={i}
-                    ref={(el) => {
-                      inputs.current[i] = el
-                    }}
-                    inputMode="numeric"
-                    aria-label={`Code digit ${i + 1}`}
-                    autoComplete={i === 0 ? "one-time-code" : "off"}
-                    maxLength={6}
-                    value={d}
-                    onChange={(e) => setDigit(i, e.target.value)}
-                    onKeyDown={(e) => onKeyDown(i, e)}
-                    className="h-14 w-full rounded-xl border border-black/10 bg-white text-center font-mono text-xl text-[#111] outline-none transition-colors focus:border-black/30"
-                  />
-                ))}
+              <div
+                className="flex justify-between gap-2"
+                style={{ animation: shake ? "otpShake 0.45s cubic-bezier(.36,.07,.19,.97)" : undefined }}
+              >
+                {digits.map((d, i) => {
+                  const filled = !!d
+                  const active = activeIndex === i
+                  return (
+                    <input
+                      key={i}
+                      ref={(el) => {
+                        inputs.current[i] = el
+                      }}
+                      inputMode="numeric"
+                      aria-label={`Code digit ${i + 1}`}
+                      autoComplete={i === 0 ? "one-time-code" : "off"}
+                      maxLength={6}
+                      value={d}
+                      onChange={(e) => setDigit(i, e.target.value)}
+                      onKeyDown={(e) => onKeyDown(i, e)}
+                      onFocus={() => setActiveIndex(i)}
+                      className={`h-14 w-full rounded-xl border bg-white text-center font-mono text-xl outline-none ${
+                        complete
+                          ? "border-emerald-500/60 text-emerald-700"
+                          : filled
+                            ? "border-emerald-500/50 text-[#111]"
+                            : active
+                              ? "border-black/40 text-[#111]"
+                              : "border-black/10 text-[#111]"
+                      }`}
+                      style={{
+                        animation: `otpIn 0.5s cubic-bezier(0.16,1,0.3,1) ${i * 60}ms both`,
+                        transform: poppedIndex === i ? "scale(1.14)" : "scale(1)",
+                        transition: "transform 0.18s cubic-bezier(0.16,1,0.3,1), border-color 0.2s ease, color 0.2s ease, box-shadow 0.25s ease",
+                        boxShadow: complete
+                          ? "0 0 0 3px rgba(16,185,129,0.18), 0 6px 18px -6px rgba(16,185,129,0.5)"
+                          : filled
+                            ? "0 0 0 2px rgba(16,185,129,0.14)"
+                            : active
+                              ? "0 0 0 3px rgba(0,0,0,0.06)"
+                              : "none",
+                      }}
+                    />
+                  )
+                })}
+              </div>
+
+              {/* Progress shimmer */}
+              <div className="h-0.5 w-full overflow-hidden rounded-full bg-black/5">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${(code.length / 6) * 100}%`,
+                    background: complete
+                      ? "linear-gradient(90deg,#10b981,#34d399)"
+                      : "linear-gradient(90deg,#111,#555)",
+                    transition: "width 0.3s cubic-bezier(0.16,1,0.3,1)",
+                  }}
+                />
               </div>
 
               {error && <p role="alert" className="text-xs text-red-500/80">{error}</p>}
@@ -278,6 +333,19 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+
+      <style>{`
+        @keyframes otpIn {
+          from { opacity: 0; transform: translateY(14px) scale(0.85); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes otpShake {
+          10%, 90% { transform: translateX(-1px); }
+          20%, 80% { transform: translateX(2px); }
+          30%, 50%, 70% { transform: translateX(-5px); }
+          40%, 60% { transform: translateX(5px); }
+        }
+      `}</style>
     </div>
   )
 }
