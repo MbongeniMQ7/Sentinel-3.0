@@ -10,6 +10,24 @@ import { RevealText } from "@/components/reveal-text"
 import { StackingAgentCards } from "@/components/stacking-agent-cards"
 import { MobileNav } from "@/components/mobile-nav"
 import { DevExSection } from "@/components/devex-section"
+import { LiveWatch } from "@/components/app/live-watch"
+import type { BiometricRow } from "@/lib/supabase/db"
+
+// Demo smartwatch for the marketing hero — not tied to a signed-in user.
+const HERO_READING: BiometricRow = {
+  id: "hero",
+  reading_time: new Date().toISOString(),
+  heart_rate: 82,
+  hrv: 58,
+  skin_temperature: 36.6,
+  movement: "moderate",
+  activity_score: 64,
+}
+
+function HeroWatch() {
+  return <LiveWatch base={HERO_READING} riskLevel="low" fatigueScore={28} connected size="lg" />
+}
+
 
 // ─── Intersection Observer hook ──────────────────────────────────────────────
 function useInView(threshold = 0.15) {
@@ -131,6 +149,18 @@ export default function SentinelPage() {
 
         {/* Spacer so hero content doesn't sit under the fixed nav */}
         <div className="h-20" />
+
+        {/* Floating live smartwatch — the "wow" glance */}
+        <div
+          className="absolute right-6 top-28 z-30 hidden md:block lg:right-12"
+          style={{
+            opacity: heroReady ? 1 : 0,
+            transform: heroReady ? "translateY(0)" : "translateY(24px)",
+            transition: "opacity 1s cubic-bezier(0.16,1,0.3,1) 400ms, transform 1s cubic-bezier(0.16,1,0.3,1) 400ms",
+          }}
+        >
+          <HeroWatch />
+        </div>
 
         {/* Title + metrics — anchored to bottom left */}
         <div className="absolute inset-x-0 bottom-0 z-30 flex flex-col px-6 md:px-12 pb-8 sm:pb-12 max-w-3xl">
