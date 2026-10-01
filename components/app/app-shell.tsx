@@ -7,6 +7,7 @@ import { Menu, X, Search, Bell, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { NavGroup, Role } from "./nav-config"
 import { CommandPalette } from "./command-palette"
+import { BrandPulse } from "./brand-pulse"
 import { useAuth } from "@/lib/supabase/use-auth"
 import { SampleDataNotice } from "./sample-data-notice"
 
@@ -121,6 +122,7 @@ export function AppShell({
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { initial, displayName, signOut, loading, profile } = useAuth()
+  const pathname = usePathname()
   const theme = THEMES[role]
 
   if (loading || !profile || profile.role !== role) {
@@ -171,6 +173,9 @@ export function AppShell({
           <SearchTrigger />
 
           <div className="ml-auto flex items-center gap-1.5">
+            <span className="mr-2 hidden lg:inline-flex" title="Live biometric stream">
+              <BrandPulse />
+            </span>
             <Link
               href={role === "manager" ? "/manager/alerts" : role === "employee" ? "/employee/alerts" : "/owner/fatigue"}
               className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
@@ -193,9 +198,13 @@ export function AppShell({
               <LogOut className="h-4.5 w-4.5" />
             </button>
           </div>
+          {/* Animated brand accent sweeping along the header base */}
+          <span className="pointer-events-none absolute inset-x-0 bottom-0 h-px overflow-hidden">
+            <span className="brand-sweep block h-full w-1/3 opacity-60" />
+          </span>
         </header>
 
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"><SampleDataNotice />{children}</main>
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"><SampleDataNotice /><div key={pathname} className="page-in">{children}</div></main>
       </div>
 
       <CommandPalette role={role} />

@@ -174,6 +174,27 @@
   animation: glitch-shift 5s infinite ease-in-out, glitch-opacity 3s infinite ease-in-out;
 }
 
+/* App page entrance + animated brand accents (used across every in-app page) */
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes brandSweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.page-in {
+  animation: pageIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.brand-sweep {
+  background: linear-gradient(90deg, transparent, var(--brand, #0f2a4a), transparent);
+  animation: brandSweep 3.5s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-in, .brand-sweep { animation: none; }
+}
+
+
 /* Word reveal — blur + translateY */
 @keyframes word-reveal {
   0% {

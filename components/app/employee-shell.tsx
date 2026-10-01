@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { Wrench, Watch, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { EMPLOYEE_NAV } from "./nav-config"
+import { BrandPulse } from "./brand-pulse"
 import { useAuth } from "@/lib/supabase/use-auth"
 import { SampleDataNotice } from "./sample-data-notice"
 
@@ -86,6 +87,9 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
             <span className="text-sm font-semibold tracking-tight text-slate-900">Sentinel-AI</span>
           </Link>
           <div className="ml-auto flex items-center gap-1.5">
+            <span className="mr-2 hidden lg:inline-flex" title="Live biometric stream">
+              <BrandPulse />
+            </span>
             <Link
               href="/employee/corrections"
               className={cn(
@@ -120,6 +124,10 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
               <LogOut className="h-4.5 w-4.5" />
             </button>
           </div>
+          {/* Animated brand accent sweeping along the header base */}
+          <span className="pointer-events-none absolute inset-x-0 bottom-0 h-px overflow-hidden">
+            <span className="brand-sweep block h-full w-1/3 opacity-60" />
+          </span>
         </header>
 
         {/* Content */}
@@ -128,7 +136,7 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
             {EMPLOYEE_NAV.slice(5).map(item => <Link key={item.href} href={item.href} className={cn("inline-flex items-center gap-1.5 py-2 text-sm", pathname === item.href ? "font-semibold text-emerald-700" : "text-slate-600")}><item.icon className="h-4 w-4" />{item.label}</Link>)}
           </nav>
           <SampleDataNotice personal />
-          {children}
+          <div key={pathname} className="page-in">{children}</div>
         </main>
       </div>
 

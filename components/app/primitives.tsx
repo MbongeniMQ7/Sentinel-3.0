@@ -18,7 +18,7 @@ export function SectionCard({
   bodyClassName?: string
 }) {
   return (
-    <section className={cn("rounded-xl border border-slate-200 bg-white", className)}>
+    <section className={cn("rounded-xl border border-slate-200 bg-white transition-all duration-300 hover:border-(--brand-ring) hover:shadow-[0_8px_30px_-12px_var(--brand-soft)]", className)}>
       {(title || action) && (
         <header className="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-4">
           <div className="min-w-0">
@@ -67,10 +67,11 @@ export function MetricCard({
   hint?: string
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
+    <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-(--brand-ring) hover:shadow-[0_10px_30px_-14px_var(--brand-soft)]">
+      <span className="absolute inset-x-0 top-0 h-0.5 scale-x-0 bg-(--brand) opacity-0 transition-all duration-300 group-hover:scale-x-100 group-hover:opacity-100" />
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</span>
-        {Icon && <Icon className="h-4 w-4 text-slate-400" />}
+        {Icon && <Icon className="h-4 w-4 text-slate-400 transition-colors group-hover:text-(--brand)" />}
       </div>
       <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">{value}</div>
       {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
