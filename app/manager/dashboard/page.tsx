@@ -36,6 +36,7 @@ import { SectionCard, EmptyState, RiskBadge, Badge } from "@/components/app/prim
 import { Button } from "@/components/app/controls"
 import { FadeIn, CountUp } from "@/components/app/motion"
 import { RevealText } from "@/components/reveal-text"
+import { WalkingPeople } from "@/components/app/walking-people"
 import {
   managerMetrics,
   analyticsData,
@@ -212,6 +213,7 @@ export default function ManagerDashboard() {
         <FadeIn delay={40}>
           <SectionCard title="Workforce Activity" description="Hours worked across your team, last 7 days">
             {hasHours ? (
+              <div className="relative">
               <ResponsiveContainer width="100%" height={260}>
                 <AreaChart data={analytics!.hoursTrend} margin={{ top: 10, right: 12, left: -12, bottom: 0 }}>
                   <defs>
@@ -241,6 +243,8 @@ export default function ManagerDashboard() {
                   />
                 </AreaChart>
               </ResponsiveContainer>
+              <WalkingPeople />
+              </div>
             ) : (
               <EmptyState icon={BarChart3} title="No hours recorded yet." description="Trends appear as your team works shifts." />
             )}
