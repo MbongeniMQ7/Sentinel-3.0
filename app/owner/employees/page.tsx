@@ -237,7 +237,17 @@ export default function OwnerEmployeesPage() {
         }
       />
 
-      <AddEmployeeModal open={open} onClose={() => setOpen(false)} onSubmitted={() => setToast("Employee added.")} />
+      <AddEmployeeModal
+        open={open}
+        onClose={() => setOpen(false)}
+        onSubmitted={(result) =>
+          setToast(
+            result.inviteSent
+              ? `Employee added. Invite sent to ${result.email}.`
+              : `Employee added, but the invite failed: ${result.inviteError ?? "email service unavailable"}. Use Resend to retry.`,
+          )
+        }
+      />
 
       <Modal
         open={!!toDelete}

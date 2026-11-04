@@ -22,8 +22,11 @@ export function WorkforcePulse({ bpm, color = "#38bdf8", height = 72 }: { bpm: n
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const bpmRef = useRef(bpm)
   const colorRef = useRef(color)
-  bpmRef.current = bpm
-  colorRef.current = color
+
+  useEffect(() => {
+    bpmRef.current = bpm
+    colorRef.current = color
+  }, [bpm, color])
 
   useEffect(() => {
     const canvas = canvasRef.current

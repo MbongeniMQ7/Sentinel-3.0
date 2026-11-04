@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Watch, Plus, Search } from "lucide-react"
-import { PageHeader, DataTable, EmptyState, Badge } from "@/components/app/primitives"
+import { PageHeader, DataTable, EmptyState, Badge, LoadErrorState } from "@/components/app/primitives"
 import { Button, Input, Select, Field } from "@/components/app/controls"
 import { Modal } from "@/components/app/modal"
 import { Toast } from "@/components/app/toast"
@@ -27,16 +27,24 @@ export default function ManagerDevicesPage() {
   const [sites, setSites] = useState<Site[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const now = useNow(1000)
 
   const load = useCallback(() => {
-    listDevices().then(setDevices).catch(() => setDevices([]))
+    void Promise.all([listDevices(), listEmployees(), listSites()])
+      .then(([nextDevices, nextEmployees, nextSites]) => {
+        setDevices(nextDevices)
+        setEmployees(nextEmployees)
+        setSites(nextSites)
+        setLoadError(null)
+      })
+      .catch(() => setLoadError("Device data could not be loaded. Check your connection and retry."))
+      .finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
-    load()
-    listEmployees().then(setEmployees).catch(() => setEmployees([]))
-    listSites().then(setSites).catch(() => setSites([]))
+    void load()
     return subscribeTable("devices", load)
   }, [load])
 
@@ -65,6 +73,9 @@ export default function ManagerDevicesPage() {
       setSaving(false)
     }
   }
+
+  if (loading) return <><PageHeader title="Devices" description="Wristbands and their live biometric signals." /><p role="status" className="py-16 text-center text-sm text-slate-500">Loading devices…</p></>
+  if (loadError) return <><PageHeader title="Devices" description="Wristbands and their live biometric signals." /><LoadErrorState message={loadError} onRetry={() => { setLoading(true); load() }} /></>
 
   return (
     <>

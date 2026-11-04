@@ -1,4 +1,5 @@
 import React from "react"
+import { RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // ─── Section card ─────────────────────────────────────────────────────────────
@@ -50,6 +51,21 @@ export function PageHeader({
         {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+    </div>
+  )
+}
+
+export function LoadErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+      <p className="text-sm text-red-800">{message}</p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-800 transition hover:bg-red-100"
+      >
+        <RefreshCw className="h-3.5 w-3.5" /> Retry
+      </button>
     </div>
   )
 }

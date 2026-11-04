@@ -7,6 +7,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Activity,
+  Battery,
+  Clock3,
   HeartPulse,
   Maximize2,
   Minimize2,
@@ -18,12 +20,14 @@ import {
   Map as MapIcon,
   Play,
   Pause,
+  RefreshCw,
 } from "lucide-react"
 import { LiveWatch } from "@/components/app/live-watch"
 import { WorkforcePulse } from "@/components/app/workforce-pulse"
 import { SiteMap } from "@/components/app/site-map"
 import { DigitalTwin } from "@/components/app/digital-twin"
 import { listLiveFleet, subscribeTable, type FleetMember } from "@/lib/supabase/db"
+import { timeAgo, useNow } from "@/hooks/use-live-vitals"
 
 type RiskFilter = "all" | "high" | "moderate" | "low"
 type View = "wall" | "map" | "site"
@@ -92,6 +96,7 @@ function HeartDot({ m }: { m: FleetMember }) {
 export function CommandCenter() {
   const [fleet, setFleet] = useState<FleetMember[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [loadError, setLoadError] = useState(false)
   const [site, setSite] = useState("")
   const [riskFilter, setRiskFilter] = useState<RiskFilter>("all")
   const [view, setView] = useState<View>("wall")
@@ -102,14 +107,17 @@ export function CommandCenter() {
   const [twin, setTwin] = useState<FleetMember | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const prevHighRef = useRef<Set<string>>(new Set())
+  const hasInitialRiskSnapshotRef = useRef(false)
+  const now = useNow()
 
   const load = useCallback(() => {
     listLiveFleet()
       .then((f) => {
         setFleet(f)
-        setLoaded(true)
       })
-      .catch(() => setLoaded(true))
+      .then(() => setLoadError(false))
+      .catch(() => setLoadError(true))
+      .finally(() => setLoaded(true))
   }, [])
 
   useEffect(() => {
@@ -170,8 +178,14 @@ export function CommandCenter() {
   // Alert cue: beep + vibrate when a new person crosses into high risk.
   useEffect(() => {
     const high = new Set(effectiveFleet.filter((m) => m.risk_level === "high").map((m) => m.employee_id))
+    if (!loaded) return
+    if (!hasInitialRiskSnapshotRef.current) {
+      prevHighRef.current = high
+      hasInitialRiskSnapshotRef.current = true
+      return
+    }
     const fresh = [...high].some((id) => !prevHighRef.current.has(id))
-    if (fresh && loaded) {
+    if (fresh) {
       if (!muted) {
         try {
           const Ctx = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext
@@ -378,8 +392,21 @@ export function CommandCenter() {
       )}
 
       {/* Content */}
+      {loadError && (
+        <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-4 py-3">
+          <p className="text-sm text-amber-100/90">Live device data is unavailable. Check your connection and retry.</p>
+          <button
+            onClick={load}
+            className="inline-flex items-center gap-2 rounded-lg border border-amber-300/25 px-3 py-1.5 text-xs font-medium text-amber-100 transition hover:bg-amber-300/10"
+          >
+            <RefreshCw className="h-3.5 w-3.5" /> Retry
+          </button>
+        </div>
+      )}
       {!loaded ? (
         <p className="py-16 text-center text-sm text-white/40">Connecting to the fleet…</p>
+      ) : loadError && fleet.length === 0 ? (
+        <p className="py-10 text-center text-sm text-white/40">No live device data could be loaded.</p>
       ) : visible.length === 0 ? (
         <p className="py-16 text-center text-sm text-white/40">No wristbands match this view.</p>
       ) : view === "wall" ? (
@@ -395,6 +422,21 @@ export function CommandCenter() {
                 connected={m.connection_status === "connected"}
                 size="sm"
               />
+              <span className="mt-2 flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] text-white/50">
+                <span className="inline-flex items-center gap-1.5 capitalize">
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: m.connection_status === "connected" ? "#10b981" : m.connection_status === "syncing" ? "#f59e0b" : "#64748b" }}
+                  />
+                  {m.connection_status === "connected" ? "Connected" : m.connection_status === "syncing" ? "Syncing" : m.connection_status === "disconnected" ? "Offline" : "No device"}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <Battery className="h-3 w-3" /> {m.battery_level != null ? `${m.battery_level}%` : "—"}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <Clock3 className="h-3 w-3" /> {timeAgo(m.last_sync_time, now)}
+                </span>
+              </span>
             </button>
           ))}
         </div>

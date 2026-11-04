@@ -206,13 +206,6 @@ function SampleDataTab() {
 }
 
 function TabContent({ id }: { id: string }) {
-  const [saved, setSaved] = useState<string | null>(null)
-
-  const save = (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaved("Changes saved for this session.")
-  }
-
   if (id === "account") return <AccountTab />
   if (id === "company") return <CompanyTab />
   if (id === "sample-data") return <SampleDataTab />
@@ -220,13 +213,13 @@ function TabContent({ id }: { id: string }) {
   if (id === "notifications") {
     const rows = ["Fatigue alerts", "Late arrivals", "Device disconnections", "Weekly summary"]
     return (
-      <SectionCard title="Notifications" description="Choose what you'd like to be notified about.">
-        <div className="max-w-lg divide-y divide-slate-100">
+      <SectionCard title="Notifications" description="Notification preferences are not available yet.">
+        <div className="max-w-lg divide-y divide-slate-100" aria-label="Unavailable notification preferences">
           {rows.map((r) => (
-            <label key={r} className="flex items-center justify-between py-3 text-sm text-slate-700">
+            <div key={r} className="flex items-center justify-between gap-4 py-3 text-sm text-slate-700">
               {r}
-              <input type="checkbox" className="h-4 w-4 rounded border-slate-300" />
-            </label>
+              <span className="shrink-0 text-xs text-slate-400">Unavailable</span>
+            </div>
           ))}
         </div>
       </SectionCard>
@@ -235,17 +228,10 @@ function TabContent({ id }: { id: string }) {
 
   if (id === "security") {
     return (
-      <SectionCard title="Security" description="Keep your account secure.">
-        <form onSubmit={save} className="max-w-lg space-y-4">
-          <Field label="Current password">
-            <Input type="password" placeholder="••••••••" />
-          </Field>
-          <Field label="New password">
-            <Input type="password" placeholder="••••••••" />
-          </Field>
-          <Button type="submit">Update password</Button>
-        </form>
-        <Toast message={saved} onDismiss={() => setSaved(null)} />
+      <SectionCard title="Security" description="Sign-in is secured with one-time email codes.">
+        <p className="max-w-lg text-sm leading-relaxed text-slate-600">
+          This account does not use a password, so there is no password to change. Use the sign-in code sent to your email each time you log in.
+        </p>
       </SectionCard>
     )
   }
@@ -255,8 +241,8 @@ function TabContent({ id }: { id: string }) {
     <SectionCard>
       <EmptyState
         icon={SlidersHorizontal}
-        title="Nothing configured yet."
-        description="This section will be available once your workspace has data to manage."
+        title="Not available yet."
+        description="This setting is not connected to a saved workspace preference yet."
       />
     </SectionCard>
   )

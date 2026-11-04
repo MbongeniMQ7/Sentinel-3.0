@@ -25,7 +25,7 @@ import {
   CalendarDays,
   ShieldAlert,
 } from "lucide-react"
-import { SectionCard, EmptyState, RiskBadge, Badge } from "@/components/app/primitives"
+import { SectionCard, EmptyState, RiskBadge, Badge, LoadErrorState } from "@/components/app/primitives"
 import { ClockInCard } from "@/components/app/clock-in-card"
 import { FadeIn, CountUp } from "@/components/app/motion"
 import { RevealText } from "@/components/reveal-text"
@@ -71,26 +71,37 @@ export default function EmployeeHomePage() {
   const [attendance, setAttendance] = useState<AttendanceRow[]>([])
   const [alerts, setAlerts] = useState<FatigueAlertRow[]>([])
   const [device, setDevice] = useState<DeviceRow | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const load = useCallback(() => {
-    myHoursSummary().then(setHours).catch(() => {})
-    listMyAttendance(30).then(setAttendance).catch(() => {})
-    listMyAlerts().then(setAlerts).catch(() => {})
-    ;(async () => {
-      const emp = await getMyEmployee()
-      if (!emp) return
-      const devices = await listDevices()
-      setDevice(devices.find((d) => d.employee_id === emp.id) ?? null)
-    })().catch(() => {})
+    void Promise.all([
+        myHoursSummary(),
+        listMyAttendance(30),
+        listMyAlerts(),
+        getMyEmployee(),
+      ])
+      .then(async ([nextHours, nextAttendance, nextAlerts, employee]) => {
+        const devices = employee ? await listDevices() : []
+        setHours(nextHours)
+        setAttendance(nextAttendance)
+        setAlerts(nextAlerts)
+        setDevice(devices.find((d) => d.employee_id === employee?.id) ?? null)
+        setLoadError(null)
+      })
+      .catch(() => setLoadError("Your dashboard data could not be loaded. Check your connection and retry."))
+      .finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
-    load()
+    void load()
     const a = subscribeTable("attendance_records", load)
     const b = subscribeTable("fatigue_alerts", load)
+    const c = subscribeTable("devices", load)
     return () => {
       a()
       b()
+      c()
     }
   }, [load])
 
@@ -122,6 +133,9 @@ export default function EmployeeHomePage() {
     { label: "This Month", value: hours.month, icon: BarChart3, decimals: 1, suffix: "h" },
     { label: "Open Alerts", value: openAlerts.length, icon: ShieldAlert, decimals: 0, suffix: "" },
   ]
+
+  if (loading) return <p role="status" className="py-16 text-center text-sm text-slate-500">Loading your dashboard…</p>
+  if (loadError) return <LoadErrorState message={loadError} onRetry={() => { setLoading(true); load() }} />
 
   return (
     <>

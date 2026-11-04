@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Watch, Battery, Wifi, HeartPulse, Activity, Thermometer, Footprints } from "lucide-react"
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts"
-import { PageHeader, SectionCard, EmptyState, Badge } from "@/components/app/primitives"
+import { PageHeader, SectionCard, EmptyState, Badge, LoadErrorState } from "@/components/app/primitives"
 import { FadeIn } from "@/components/app/motion"
 import { LiveWatch } from "@/components/app/live-watch"
 import {
@@ -60,20 +60,35 @@ export default function EmployeeDevicePage() {
   const [device, setDevice] = useState<DeviceRow | null>(null)
   const [readings, setReadings] = useState<BiometricRow[]>([])
   const [assessment, setAssessment] = useState<FatigueAssessmentRow | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const load = useCallback(() => {
-    ;(async () => {
-      const emp = await getMyEmployee()
-      if (!emp) return
-      const devices = await listDevices()
+    void getMyEmployee()
+      .then(async (emp) => {
+      if (!emp) {
+        setDevice(null)
+        setReadings([])
+        setAssessment(null)
+        setLoadError(null)
+        return
+      }
+      const [devices, nextReadings, assessments] = await Promise.all([
+        listDevices(),
+        listMyBiometrics(24),
+        listEmployeeAssessments(emp.id),
+      ])
       setDevice(devices.find((d) => d.employee_id === emp.id) ?? null)
-      setReadings(await listMyBiometrics(24))
-      setAssessment((await listEmployeeAssessments(emp.id))[0] ?? null)
-    })().catch(() => {})
+      setReadings(nextReadings)
+      setAssessment(assessments[0] ?? null)
+      setLoadError(null)
+      })
+      .catch(() => setLoadError("Your wristband data could not be loaded. Check your connection and retry."))
+      .finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
-    load()
+    void load()
     const a = subscribeTable("devices", load)
     const b = subscribeTable("biometric_readings", load)
     const c = subscribeTable("fatigue_assessments", load)
@@ -100,6 +115,9 @@ export default function EmployeeDevicePage() {
         })),
     [readings],
   )
+
+  if (loading) return <><PageHeader title="My Device" description="Your wristband and its live biometric signals." /><p role="status" className="py-16 text-center text-sm text-slate-500">Loading your wristband…</p></>
+  if (loadError) return <><PageHeader title="My Device" description="Your wristband and its live biometric signals." /><LoadErrorState message={loadError} onRetry={() => { setLoading(true); load() }} /></>
 
   return (
     <>

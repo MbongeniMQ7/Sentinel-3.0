@@ -230,7 +230,7 @@ export default function SentinelPage() {
 
       {/* ── PLATFORM OVERVIEW (bento) ──────────────────────────────────────── */}
       <section id="platform" className="py-32 px-6 md:px-12 lg:px-20">
-        <div className="max-w-6xl mx-auto">
+        <div className="mx-auto w-full max-w-[1600px]">
           <div className="mb-16">
             <PixelIcon type="platform" size={40} />
             <div className="mt-4"><Tag>PLATFORM</Tag></div>
@@ -302,7 +302,7 @@ export default function SentinelPage() {
 
       {/* ── BUILD YOUR AGENTS (4 cards) ───────────────────────────────────── */}
       <section id="agents" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
-        <div className="max-w-6xl mx-auto">
+        <div className="mx-auto w-full max-w-[1600px]">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-16">
             <div>
               <PixelIcon type="agents" size={40} />
@@ -322,7 +322,7 @@ export default function SentinelPage() {
 
       {/* ── HOW IT WORKS ──────────────────────────────────────────────────── */}
       <section id="workflow" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06] overflow-hidden">
-        <div className="max-w-6xl mx-auto">
+        <div className="mx-auto w-full max-w-[1600px]">
           <div className="mb-16">
             <PixelIcon type="workflow" size={40} />
             <div className="mt-4"><Tag>HOW IT WORKS</Tag></div>
@@ -410,7 +410,7 @@ export default function SentinelPage() {
 
       {/* ── LIVE AGENTS ��──────────────────────────────────────────────────── */}
       <section id="live" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
-        <div className="max-w-6xl mx-auto">
+        <div className="mx-auto w-full max-w-[1600px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div>
               <PixelIcon type="agents" size={40} />
@@ -479,7 +479,7 @@ export default function SentinelPage() {
 
       {/* ── FOOTER ────────────────────────────────────────────────────────── */}
       <footer className="py-10 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+        <div className="mx-auto flex w-full max-w-[1600px] flex-col items-start justify-between gap-8 md:flex-row md:items-center">
           <span className="flex items-center gap-2">
             <img src="/images/logo.png" alt="Sentinel-AI" className="h-6 w-6 object-contain" />
             <span className="font-sans text-xs font-medium tracking-[0.25em] text-black/50">SENTINEL-AI</span>
@@ -498,7 +498,7 @@ export default function SentinelPage() {
           </div>
 
         </div>
-        <div className="max-w-6xl mx-auto mt-8 pt-6 border-t border-black/[0.04]">
+        <div className="mx-auto mt-8 w-full max-w-[1600px] border-t border-black/[0.04] pt-6">
           <span className="text-xs text-black/20">© 2026 SentinelAI Workforce. All rights reserved.</span>
         </div>
       </footer>

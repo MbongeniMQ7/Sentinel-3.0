@@ -13,7 +13,7 @@ export function AddEmployeeModal({
 }: {
   open: boolean
   onClose: () => void
-  onSubmitted?: () => void
+  onSubmitted?: (result: { email: string; inviteSent: boolean; inviteError: string | null }) => void
 }) {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -31,14 +31,10 @@ export function AddEmployeeModal({
   }, [open])
 
   useEffect(() => {
-    if (!photo) {
-      setPhotoPreview("")
-      return
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview)
     }
-    const url = URL.createObjectURL(photo)
-    setPhotoPreview(url)
-    return () => URL.revokeObjectURL(url)
-  }, [photo])
+  }, [photoPreview])
 
   function reset() {
     setName("")
@@ -46,6 +42,7 @@ export function AddEmployeeModal({
     setRole("employee")
     setSite("")
     setPhoto(null)
+    setPhotoPreview("")
     setErrors({})
   }
 
@@ -60,10 +57,10 @@ export function AddEmployeeModal({
     setSaving(true)
     try {
       const photo_url = photo ? await uploadEmployeePhoto(photo) : null
-      await createEmployee({ full_name: name.trim(), email: email.trim(), invited_role: role, site_id: site || null, photo_url })
+      const result = await createEmployee({ full_name: name.trim(), email: email.trim(), invited_role: role, site_id: site || null, photo_url })
       reset()
       onClose()
-      onSubmitted?.()
+      onSubmitted?.({ email: email.trim(), ...result })
     } catch (err) {
       setErrors({ form: err instanceof Error ? err.message : "Could not add employee." })
     } finally {
@@ -112,7 +109,11 @@ export function AddEmployeeModal({
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null
+                setPhoto(file)
+                setPhotoPreview(file ? URL.createObjectURL(file) : "")
+              }}
             />
             <Button type="button" variant="secondary" onClick={() => fileRef.current?.click()}>
               <Upload className="mr-1.5 h-4 w-4" /> {photo ? "Change" : "Upload"}
@@ -120,7 +121,10 @@ export function AddEmployeeModal({
             {photo && (
               <button
                 type="button"
-                onClick={() => setPhoto(null)}
+                onClick={() => {
+                  setPhoto(null)
+                  setPhotoPreview("")
+                }}
                 className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800"
               >
                 <X className="h-3.5 w-3.5" /> Remove

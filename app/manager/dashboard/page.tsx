@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import {
   ResponsiveContainer,
@@ -32,7 +32,7 @@ import {
   ArrowRight,
   BarChart3,
 } from "lucide-react"
-import { SectionCard, EmptyState, RiskBadge, Badge } from "@/components/app/primitives"
+import { SectionCard, EmptyState, RiskBadge, Badge, LoadErrorState } from "@/components/app/primitives"
 import { Button } from "@/components/app/controls"
 import { FadeIn, CountUp } from "@/components/app/motion"
 import { RevealText } from "@/components/reveal-text"
@@ -91,14 +91,23 @@ export default function ManagerDashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [alerts, setAlerts] = useState<FatigueAlertRow[]>([])
   const [employees, setEmployees] = useState<EmployeeRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  const load = useCallback(() => {
+    void Promise.all([managerMetrics(), analyticsData(), listFatigueAlerts(), listEmployees()])
+      .then(([nextMetrics, nextAnalytics, nextAlerts, nextEmployees]) => {
+        setM(nextMetrics)
+        setAnalytics(nextAnalytics)
+        setAlerts(nextAlerts.slice(0, 5))
+        setEmployees(nextEmployees.slice(0, 6))
+        setLoadError(null)
+      })
+      .catch(() => setLoadError("Your dashboard data could not be loaded. Check your connection and retry."))
+      .finally(() => setLoading(false))
+  }, [])
 
   useEffect(() => {
-    const load = () => {
-      managerMetrics().then(setM).catch(() => {})
-      analyticsData().then(setAnalytics).catch(() => setAnalytics(null))
-      listFatigueAlerts().then((a) => setAlerts(a.slice(0, 5))).catch(() => setAlerts([]))
-      listEmployees().then((e) => setEmployees(e.slice(0, 6))).catch(() => setEmployees([]))
-    }
     load()
     const a = subscribeTable("attendance_records", load)
     const b = subscribeTable("fatigue_alerts", load)
@@ -110,7 +119,7 @@ export default function ManagerDashboard() {
       c()
       d()
     }
-  }, [])
+  }, [load])
 
   const hasHours = !!analytics && analytics.hoursTrend.some((d) => d.hours > 0)
   const hasActivity = !!analytics && analytics.activityTrend.some((d) => d.present > 0)
@@ -133,6 +142,9 @@ export default function ManagerDashboard() {
     { label: "Moderate Risk", value: m.moderate, icon: ShieldAlert, decimals: 0 },
     { label: "High Risk", value: m.high, icon: ShieldAlert, decimals: 0 },
   ]
+
+  if (loading) return <p role="status" className="py-16 text-center text-sm text-slate-500">Loading manager dashboard…</p>
+  if (loadError) return <LoadErrorState message={loadError} onRetry={() => { setLoading(true); load() }} />
 
   return (
     <>

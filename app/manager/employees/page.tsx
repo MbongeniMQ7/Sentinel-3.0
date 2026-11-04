@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { Users, Plus, Search, Download } from "lucide-react"
+import { Users, Plus, Search, Download, Send } from "lucide-react"
 import { PageHeader, DataTable, EmptyState, Badge } from "@/components/app/primitives"
 import { Button, Input, Select } from "@/components/app/controls"
 import { AddEmployeeModal } from "@/components/app/add-employee-modal"
@@ -11,6 +11,7 @@ import { downloadCsv, type ReportData } from "@/lib/reports"
 import {
   listEmployees,
   listSites,
+  resendInvite,
   subscribeTable,
   type EmployeeRow,
   type Site,
@@ -23,6 +24,7 @@ export default function ManagerEmployeesPage() {
   const [siteFilter, setSiteFilter] = useState("")
   const [rows, setRows] = useState<EmployeeRow[]>([])
   const [sites, setSites] = useState<Site[]>([])
+  const [busyId, setBusyId] = useState<string | null>(null)
 
   function load() {
     listEmployees().then(setRows).catch(() => setRows([]))
@@ -65,6 +67,18 @@ export default function ManagerEmployeesPage() {
     setToast(`Exported ${filtered.length} employee${filtered.length === 1 ? "" : "s"}.`)
   }
 
+  async function handleResend(employee: EmployeeRow) {
+    setBusyId(employee.id)
+    try {
+      await resendInvite(employee.id)
+      setToast(`Invite re-sent to ${employee.email}.`)
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Could not resend the invite.")
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   return (
     <>
       <PageHeader
@@ -100,7 +114,7 @@ export default function ManagerEmployeesPage() {
       </div>
 
       <DataTable
-        columns={["Employee", "Site", "Status", "Role", "Linked"]}
+        columns={["Employee", "Site", "Status", "Role", "Linked", "Actions"]}
         empty={
           <EmptyState
             icon={Users}
@@ -131,13 +145,36 @@ export default function ManagerEmployeesPage() {
                   <td className="px-4 py-3">
                     <Badge tone={r.user_id ? "navy" : "amber"}>{r.user_id ? "Active login" : "Invited"}</Badge>
                   </td>
+                  <td className="px-4 py-3">
+                    {!r.user_id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={busyId === r.id}
+                        onClick={() => handleResend(r)}
+                        title="Resend invite email"
+                      >
+                        <Send className="h-4 w-4" /> Resend
+                      </Button>
+                    )}
+                  </td>
                 </tr>
               ))
             : undefined
         }
       />
 
-      <AddEmployeeModal open={open} onClose={() => setOpen(false)} onSubmitted={() => setToast("Employee added.")} />
+      <AddEmployeeModal
+        open={open}
+        onClose={() => setOpen(false)}
+        onSubmitted={(result) =>
+          setToast(
+            result.inviteSent
+              ? `Employee added. Invite sent to ${result.email}.`
+              : `Employee added, but the invite failed: ${result.inviteError ?? "email service unavailable"}. Use Resend to retry.`,
+          )
+        }
+      />
 
       <Toast message={toast} onDismiss={() => setToast(null)} />
     </>

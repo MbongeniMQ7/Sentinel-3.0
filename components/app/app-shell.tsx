@@ -204,7 +204,7 @@ export function AppShell({
           </span>
         </header>
 
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"><SampleDataNotice /><div key={pathname} className="page-in">{children}</div></main>
+        <main className="w-full px-4 py-6 sm:px-6 lg:px-8 2xl:px-10"><SampleDataNotice /><div key={pathname} className="page-in">{children}</div></main>
       </div>
 
       <CommandPalette role={role} />

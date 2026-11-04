@@ -131,7 +131,7 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Content */}
-        <main className="mx-auto max-w-7xl px-4 pb-24 pt-5 sm:px-6 lg:px-8 lg:pb-10">
+        <main className="w-full px-4 pb-24 pt-5 sm:px-6 lg:px-8 2xl:px-10 lg:pb-10">
           <nav aria-label="Personal insights" className="mb-4 flex flex-wrap gap-3 lg:hidden">
             {EMPLOYEE_NAV.slice(5).map(item => <Link key={item.href} href={item.href} className={cn("inline-flex items-center gap-1.5 py-2 text-sm", pathname === item.href ? "font-semibold text-emerald-700" : "text-slate-600")}><item.icon className="h-4 w-4" />{item.label}</Link>)}
           </nav>

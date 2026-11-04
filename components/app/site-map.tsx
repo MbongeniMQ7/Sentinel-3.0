@@ -14,7 +14,10 @@ export function SiteMap({ members, height = 440 }: { members: FleetMember[]; hei
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const dotsRef = useRef<Map<string, Dot>>(new Map())
   const membersRef = useRef(members)
-  membersRef.current = members
+
+  useEffect(() => {
+    membersRef.current = members
+  }, [members])
 
   useEffect(() => {
     const canvas = canvasRef.current

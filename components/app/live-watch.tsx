@@ -37,9 +37,12 @@ function EcgTrace({ bpm, color, connected }: { bpm: number; color: string; conne
   const bpmRef = useRef(bpm)
   const colorRef = useRef(color)
   const connectedRef = useRef(connected)
-  bpmRef.current = bpm
-  colorRef.current = color
-  connectedRef.current = connected
+
+  useEffect(() => {
+    bpmRef.current = bpm
+    colorRef.current = color
+    connectedRef.current = connected
+  }, [bpm, color, connected])
 
   useEffect(() => {
     const canvas = canvasRef.current

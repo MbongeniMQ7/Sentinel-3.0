@@ -202,7 +202,8 @@ export async function uploadOrganizationLogo(file: File): Promise<string> {
 
 // ─── Sites ──────────────────────────────────────────────────────────────────
 export async function listSites(): Promise<Site[]> {
-  const { data } = await supabase.from("sites").select("id, name, location, timezone, created_at").order("name")
+  const { data, error } = await supabase.from("sites").select("id, name, location, timezone, created_at").order("name")
+  if (error) throw error
   return (data as Site[]) ?? []
 }
 
@@ -219,10 +220,11 @@ export async function createSite(input: { name: string; location?: string; timez
 
 // ─── Employees ──────────────────────────────────────────────────────────────
 export async function listEmployees(): Promise<EmployeeRow[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("employees")
     .select("id, full_name, email, invited_role, status, role_title, site_id, user_id, photo_url, created_at, site:sites(name)")
     .order("created_at", { ascending: false })
+  if (error) throw error
   return (data as unknown as EmployeeRow[]) ?? []
 }
 
@@ -246,7 +248,7 @@ export async function createEmployee(input: {
   invited_role: Role
   site_id?: string | null
   photo_url?: string | null
-}) {
+}): Promise<{ inviteSent: boolean; inviteError: string | null }> {
   const organization_id = await requireOrg()
   const { data, error } = await supabase
     .from("employees")
@@ -262,13 +264,15 @@ export async function createEmployee(input: {
     .select()
     .single()
   if (error) throw error
-  // Send the branded welcome email; don't fail the whole operation if delivery hiccups.
+  let inviteError: string | null = null
   try {
-    await supabase.functions.invoke("send-invite", { body: { employee_id: data.id } })
-  } catch {
-    /* email is best-effort */
+    const { data: result, error: sendError } = await supabase.functions.invoke("send-invite", { body: { employee_id: data.id } })
+    if (sendError) inviteError = sendError.message || "Could not send the invite email."
+    else if (!result?.ok) inviteError = result?.error || "Could not send the invite email."
+  } catch (error) {
+    inviteError = error instanceof Error ? error.message : "Could not send the invite email."
   }
-  return data
+  return { inviteSent: inviteError === null, inviteError }
 }
 
 export async function resendInvite(employeeId: string) {
@@ -338,10 +342,11 @@ export async function createShift(input: {
 
 // ─── Devices ────────────────────────────────────────────────────────────────
 export async function listDevices(): Promise<DeviceRow[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("devices")
     .select("id, device_id, connection_status, battery_level, last_sync_time, employee_id, site_id, employee:employees(full_name)")
     .order("created_at", { ascending: false })
+  if (error) throw error
   return (data as unknown as DeviceRow[]) ?? []
 }
 
@@ -365,12 +370,13 @@ export async function createDevice(input: { device_id: string; employee_id?: str
 export async function listMyBiometrics(limit = 24): Promise<BiometricRow[]> {
   const emp = await getMyEmployee()
   if (!emp) return []
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("biometric_readings")
     .select("id, reading_time, heart_rate, hrv, skin_temperature, movement, activity_score")
     .eq("employee_id", emp.id)
     .order("reading_time", { ascending: false })
     .limit(limit)
+  if (error) throw error
   return (data as BiometricRow[]) ?? []
 }
 
@@ -427,6 +433,9 @@ export async function listLiveFleet(): Promise<FleetMember[]> {
       .order("assessed_at", { ascending: false })
       .limit(1500),
   ])
+
+  const queryError = employees.error ?? devices.error ?? readings.error ?? assessments.error
+  if (queryError) throw queryError
 
   const deviceByEmp = new Map<string, any>()
   for (const d of (devices.data as any[]) ?? []) if (d.employee_id && !deviceByEmp.has(d.employee_id)) deviceByEmp.set(d.employee_id, d)
@@ -499,13 +508,14 @@ export async function listEmployeeBiometrics(employeeId: string, limit = 24): Pr
 
 export async function listEmployeeAssessments(employeeId: string, days = 7): Promise<FatigueAssessmentRow[]> {
   const since = new Date(Date.now() - days * 86_400_000).toISOString()
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("fatigue_assessments")
     .select("id, employee_id, assessed_at, risk_level, fatigue_score")
     .eq("employee_id", employeeId)
     .gte("assessed_at", since)
     .order("assessed_at", { ascending: false })
     .limit(1000)
+  if (error) throw error
   return (data as FatigueAssessmentRow[]) ?? []
 }
 
@@ -534,11 +544,12 @@ export async function getMyEmployee(): Promise<EmployeeRow | null> {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return null
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("employees")
     .select("id, full_name, email, invited_role, status, role_title, site_id, user_id, photo_url, organization_id, created_at")
     .eq("user_id", user.id)
     .maybeSingle()
+  if (error) throw error
   return (data as unknown as EmployeeRow) ?? null
 }
 
@@ -669,22 +680,24 @@ export async function updateMyProfile(input: { first_name?: string; last_name?: 
 
 // ─── Alerts ─────────────────────────────────────────────────────────────────
 export async function listFatigueAlerts(): Promise<FatigueAlertRow[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("fatigue_alerts")
     .select("id, alert_type, risk_level, message, severity, acknowledged, created_at, employee:employees(full_name)")
     .order("created_at", { ascending: false })
     .limit(100)
+  if (error) throw error
   return (data as unknown as FatigueAlertRow[]) ?? []
 }
 
 export async function listMyAlerts(): Promise<FatigueAlertRow[]> {
   const emp = await getMyEmployee()
   if (!emp) return []
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("fatigue_alerts")
     .select("id, alert_type, risk_level, message, severity, acknowledged, created_at")
     .eq("employee_id", emp.id)
     .order("created_at", { ascending: false })
+  if (error) throw error
   return (data as unknown as FatigueAlertRow[]) ?? []
 }
 
@@ -702,7 +715,8 @@ export async function listAuditLogs(): Promise<AuditRow[]> {
 async function count(table: string, build?: (q: any) => any): Promise<number> {
   let q = supabase.from(table).select("*", { count: "exact", head: true })
   if (build) q = build(q)
-  const { count: c } = await q
+  const { count: c, error } = await q
+  if (error) throw error
   return c ?? 0
 }
 
@@ -712,10 +726,11 @@ export async function ownerMetrics() {
     count("employees", (q) => q.eq("invited_role", "manager")),
     count("sites"),
   ])
-  const { data: todays } = await supabase
+  const { data: todays, error } = await supabase
     .from("attendance_records")
     .select("hours_worked, clock_in_time, clock_out_time")
     .eq("date", today())
+  if (error) throw error
   const rows = todays ?? []
   const activeNow = rows.filter((r: any) => r.clock_in_time && !r.clock_out_time).length
   const hoursWorked = rows.reduce((s: number, r: any) => s + Number(r.hours_worked || 0), 0)
@@ -795,10 +810,11 @@ export async function analyticsData(): Promise<AnalyticsData> {
 }
 
 export async function managerMetrics() {
-  const { data: todays } = await supabase
+  const { data: todays, error } = await supabase
     .from("attendance_records")
     .select("hours_worked, clock_in_time, clock_out_time, late_minutes, status")
     .eq("date", today())
+  if (error) throw error
   const rows = todays ?? []
   const onShift = rows.filter((r: any) => r.clock_in_time).length
   const working = rows.filter((r: any) => r.clock_in_time && !r.clock_out_time).length
@@ -818,11 +834,12 @@ export async function myHoursSummary() {
   const startOfWeek = new Date(now)
   startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7))
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("attendance_records")
     .select("date, hours_worked")
     .eq("employee_id", emp.id)
     .gte("date", startOfMonth.toISOString().slice(0, 10))
+  if (error) throw error
   const rows = data ?? []
   const t = today()
   const wk = startOfWeek.toISOString().slice(0, 10)

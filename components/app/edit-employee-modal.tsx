@@ -8,20 +8,26 @@ import { Button, Input, Field } from "./controls"
 import { Select } from "./controls"
 import { listSites, updateEmployee, uploadEmployeePhoto, type EmployeeRow, type Site } from "@/lib/supabase/db"
 
-export function EditEmployeeModal({
-  employee,
-  open,
-  onClose,
-  onSaved,
-}: {
+type EditEmployeeModalProps = {
   employee: EmployeeRow | null
   open: boolean
   onClose: () => void
   onSaved?: () => void
-}) {
-  const [name, setName] = useState("")
-  const [roleTitle, setRoleTitle] = useState("")
-  const [site, setSite] = useState("")
+}
+
+export function EditEmployeeModal(props: EditEmployeeModalProps) {
+  return <EditEmployeeModalForm key={`${props.employee?.id ?? ""}-${props.open}`} {...props} />
+}
+
+function EditEmployeeModalForm({
+  employee,
+  open,
+  onClose,
+  onSaved,
+}: EditEmployeeModalProps) {
+  const [name, setName] = useState(employee?.full_name ?? "")
+  const [roleTitle, setRoleTitle] = useState(employee?.role_title ?? "")
+  const [site, setSite] = useState(employee?.site_id ?? "")
   const [sites, setSites] = useState<Site[]>([])
   const [photo, setPhoto] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string>("")
@@ -35,25 +41,10 @@ export function EditEmployeeModal({
   }, [open])
 
   useEffect(() => {
-    if (employee && open) {
-      setName(employee.full_name ?? "")
-      setRoleTitle(employee.role_title ?? "")
-      setSite(employee.site_id ?? "")
-      setPhoto(null)
-      setRemovePhoto(false)
-      setError("")
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview)
     }
-  }, [employee, open])
-
-  useEffect(() => {
-    if (!photo) {
-      setPhotoPreview("")
-      return
-    }
-    const url = URL.createObjectURL(photo)
-    setPhotoPreview(url)
-    return () => URL.revokeObjectURL(url)
-  }, [photo])
+  }, [photoPreview])
 
   const currentPhoto = removePhoto ? "" : photoPreview || employee?.photo_url || ""
 
@@ -117,7 +108,9 @@ export function EditEmployeeModal({
               accept="image/*"
               className="hidden"
               onChange={(e) => {
-                setPhoto(e.target.files?.[0] ?? null)
+                const file = e.target.files?.[0] ?? null
+                setPhoto(file)
+                setPhotoPreview(file ? URL.createObjectURL(file) : "")
                 setRemovePhoto(false)
               }}
             />
@@ -129,6 +122,7 @@ export function EditEmployeeModal({
                 type="button"
                 onClick={() => {
                   setPhoto(null)
+                  setPhotoPreview("")
                   setRemovePhoto(true)
                 }}
                 className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800"

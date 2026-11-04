@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import {
   ResponsiveContainer,
@@ -28,7 +28,7 @@ import {
   Lightbulb,
   Network,
 } from "lucide-react"
-import { PageHeader, MetricCard, SectionCard, EmptyState, RiskBadge, Badge } from "@/components/app/primitives"
+import { PageHeader, MetricCard, SectionCard, EmptyState, RiskBadge, Badge, LoadErrorState } from "@/components/app/primitives"
 import { Button } from "@/components/app/controls"
 import {
   ownerMetrics,
@@ -67,14 +67,23 @@ export default function OwnerDashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [alerts, setAlerts] = useState<FatigueAlertRow[]>([])
   const [employees, setEmployees] = useState<EmployeeRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  const load = useCallback(() => {
+    void Promise.all([ownerMetrics(), analyticsData(), listFatigueAlerts(), listEmployees()])
+      .then(([nextMetrics, nextAnalytics, nextAlerts, nextEmployees]) => {
+        setM(nextMetrics)
+        setAnalytics(nextAnalytics)
+        setAlerts(nextAlerts.slice(0, 5))
+        setEmployees(nextEmployees.slice(0, 5))
+        setLoadError(null)
+      })
+      .catch(() => setLoadError("Your dashboard data could not be loaded. Check your connection and retry."))
+      .finally(() => setLoading(false))
+  }, [])
 
   useEffect(() => {
-    const load = () => {
-      ownerMetrics().then(setM).catch(() => {})
-      analyticsData().then(setAnalytics).catch(() => setAnalytics(null))
-      listFatigueAlerts().then((a) => setAlerts(a.slice(0, 5))).catch(() => setAlerts([]))
-      listEmployees().then((e) => setEmployees(e.slice(0, 5))).catch(() => setEmployees([]))
-    }
     load()
     const a = subscribeTable("attendance_records", load)
     const b = subscribeTable("employees", load)
@@ -84,7 +93,7 @@ export default function OwnerDashboard() {
       b()
       c()
     }
-  }, [])
+  }, [load])
 
   const hasHours = !!analytics && analytics.hoursTrend.some((d) => d.hours > 0)
   const hasSites = !!analytics && analytics.hoursBySite.some((d) => d.hours > 0)
@@ -96,6 +105,9 @@ export default function OwnerDashboard() {
   if (m.hoursWorked > 0) insights.push(`${m.hoursWorked.toFixed(1)} hours worked across your workforce today.`)
   if (m.fatigueAlerts > 0) insights.push(`${m.fatigueAlerts} unacknowledged fatigue alert${m.fatigueAlerts === 1 ? "" : "s"} need attention.`)
   if (m.sites > 0) insights.push(`Operating across ${m.sites} site${m.sites === 1 ? "" : "s"}.`)
+
+  if (loading) return <><PageHeader title="Dashboard" description="Your workforce overview at a glance." /><p role="status" className="py-16 text-center text-sm text-slate-500">Loading owner dashboard…</p></>
+  if (loadError) return <><PageHeader title="Dashboard" description="Your workforce overview at a glance." /><LoadErrorState message={loadError} onRetry={() => { setLoading(true); load() }} /></>
 
   return (
     <>
