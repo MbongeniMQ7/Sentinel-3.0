@@ -1,16 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts"
 import {
   ClipboardList,
   BellOff,
@@ -19,32 +10,25 @@ import {
   Activity,
   Thermometer,
   Gauge,
-  Clock,
   Bell,
   BadgeCheck,
   Wrench,
   UserRound,
   ArrowRight,
-  BarChart3,
 } from "lucide-react"
 import { SectionCard, EmptyState, RiskBadge, Badge, LoadErrorState } from "@/components/app/primitives"
 import { ClockInCard } from "@/components/app/clock-in-card"
 import { FadeIn } from "@/components/app/motion"
 import { RevealText } from "@/components/reveal-text"
-import { useNow } from "@/hooks/use-live-vitals"
 import { getMyLiveWatchReading, type LiveWatchReading } from "@/lib/supabase/device-dashboard"
 import {
   getMyEmployee,
   listDevices,
   listMyAlerts,
-  listMyAttendance,
   subscribeTable,
-  type AttendanceRow,
   type DeviceRow,
   type FatigueAlertRow,
 } from "@/lib/supabase/db"
-
-const BRAND_BLUE = "#0284c7"
 
 function greeting() {
   const h = new Date().getHours()
@@ -53,23 +37,15 @@ function greeting() {
   return "Good evening"
 }
 
-function fmt(h: number) {
-  const totalMin = Math.round(h * 60)
-  return `${Math.floor(totalMin / 60)}h ${String(totalMin % 60).padStart(2, "0")}m`
-}
-
 // Employee quick links, mirroring the manager privilege pills.
 const QUICK_LINKS = [
   { label: "My attendance", icon: ClipboardList, href: "/employee/attendance" },
-  { label: "My hours", icon: Clock, href: "/employee/hours" },
-  { label: "My alerts", icon: Bell, href: "/employee/alerts" },
+  { label: "Past alerts", icon: Bell, href: "/employee/alerts" },
   { label: "My device", icon: Watch, href: "/employee/device" },
   { label: "Corrections", icon: Wrench, href: "/employee/corrections" },
 ]
 
 export default function EmployeeHomePage() {
-  const now = useNow(60000)
-  const [attendance, setAttendance] = useState<AttendanceRow[]>([])
   const [alerts, setAlerts] = useState<FatigueAlertRow[]>([])
   const [device, setDevice] = useState<DeviceRow | null>(null)
   const [watchReading, setWatchReading] = useState<LiveWatchReading | null>(null)
@@ -78,15 +54,10 @@ export default function EmployeeHomePage() {
   const [loadError, setLoadError] = useState<string | null>(null)
 
   const load = useCallback(() => {
-    void Promise.all([
-        listMyAttendance(30),
-        listMyAlerts(),
-        getMyEmployee(),
-      ])
-      .then(async ([nextAttendance, nextAlerts, employee]) => {
+    void Promise.all([listMyAlerts(), getMyEmployee()])
+      .then(async ([nextAlerts, employee]) => {
         const devices = employee ? await listDevices() : []
         const nextDevice = devices.find((d) => d.employee_id === employee?.id) ?? null
-        setAttendance(nextAttendance)
         setAlerts(nextAlerts)
         setDevice(nextDevice)
         if (!nextDevice) {
@@ -95,19 +66,16 @@ export default function EmployeeHomePage() {
         }
         setLoadError(null)
       })
-      .catch(() => setLoadError("Your dashboard data could not be loaded. Check your connection and retry."))
       .finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
     void load()
-    const a = subscribeTable("attendance_records", load)
-    const b = subscribeTable("fatigue_alerts", load)
-    const c = subscribeTable("devices", load)
+    const alertsSubscription = subscribeTable("fatigue_alerts", load)
+    const devicesSubscription = subscribeTable("devices", load)
     return () => {
-      a()
-      b()
-      c()
+      alertsSubscription()
+      devicesSubscription()
     }
   }, [load])
 
@@ -140,26 +108,6 @@ export default function EmployeeHomePage() {
     }
   }, [deviceId])
 
-  const hoursChart = useMemo(() => {
-    const days: { label: string; hours: number }[] = []
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now - i * 86_400_000)
-      const date = d.toISOString().slice(0, 10)
-      days.push({
-        label: d.toLocaleDateString(undefined, { weekday: "short" }),
-        hours: Number(
-          attendance
-            .filter((a) => a.date === date)
-            .reduce((s, a) => s + Number(a.hours_worked || 0), 0)
-            .toFixed(2),
-        ),
-      })
-    }
-    return days
-  }, [attendance, now])
-
-  const hasHours = hoursChart.some((d) => d.hours > 0)
-
   const metrics = [
     { label: "Heart rate", value: watchReading?.heartRate ?? null, unit: " bpm", icon: HeartPulse },
     { label: "Calibration", value: watchReading?.calibration ?? null, unit: "", icon: Activity },
@@ -188,7 +136,7 @@ export default function EmployeeHomePage() {
                   {greeting()}
                 </RevealText>
                 <p className="mt-1.5 max-w-xl text-sm text-sky-50/80">
-                  Your shift at a glance — track your hours, attendance, wellbeing alerts and wristband from one place.
+                  Your assigned watch, wellbeing alerts, and shift activity in one place.
                 </p>
               </div>
 
@@ -261,52 +209,32 @@ export default function EmployeeHomePage() {
             <ClockInCard onChange={load} />
           </FadeIn>
 
-          <FadeIn delay={80}>
-            <SectionCard title="My Hours" description="Hours you worked over the last 7 days">
-              {hasHours ? (
-                <ResponsiveContainer width="100%" height={220}>
-                  <AreaChart data={hoursChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="empHomeHoursFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={BRAND_BLUE} stopOpacity={0.28} />
-                        <stop offset="100%" stopColor={BRAND_BLUE} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#eef1f5" vertical={false} />
-                    <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="hours" stroke={BRAND_BLUE} strokeWidth={2} fill="url(#empHomeHoursFill)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              ) : (
-                <EmptyState icon={BarChart3} title="No hours recorded yet." description="Your trend appears once you work shifts." />
-              )}
-            </SectionCard>
-          </FadeIn>
-
           <FadeIn delay={120}>
             <SectionCard
-              title="Recent Attendance"
+              title="Past Alerts"
+              description="Recent fatigue and attendance alerts for you."
               action={
-                <Link href="/employee/attendance" className="text-xs font-medium text-(--brand) hover:underline">
+                <Link href="/employee/alerts" className="text-xs font-medium text-(--brand) hover:underline">
                   View all
                 </Link>
               }
             >
-              {attendance.length === 0 ? (
-                <EmptyState icon={ClipboardList} title="No attendance records yet." description="Your clock-in history will appear here." />
+              {alerts.length === 0 ? (
+                <EmptyState icon={BellOff} title="No past alerts." description="Fatigue and attendance alerts will appear here when available." />
               ) : (
                 <ul className="divide-y divide-slate-100">
-                  {attendance.slice(0, 5).map((a) => (
-                    <li key={a.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                      <span className="font-medium text-slate-700">{new Date(a.date).toLocaleDateString()}</span>
-                      <span className="flex items-center gap-2">
-                        <Badge tone={a.status === "present" ? "green" : a.status === "late" ? "amber" : "slate"}>{a.status}</Badge>
-                        <span className="text-slate-500">
-                          {a.hours_worked ? fmt(Number(a.hours_worked)) : a.clock_in_time ? "In progress" : "—"}
-                        </span>
-                      </span>
+                  {alerts.slice(0, 6).map((alert) => (
+                    <li key={alert.id} className="flex items-start justify-between gap-3 py-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-slate-800">{alert.message || alert.alert_type}</p>
+                        <p className="mt-0.5 text-xs text-slate-400">{new Date(alert.created_at).toLocaleString()}</p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <RiskBadge level={alert.risk_level} />
+                        <Badge tone={alert.acknowledged ? "slate" : "amber"}>
+                          {alert.acknowledged ? "Acknowledged" : "Open"}
+                        </Badge>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -319,25 +247,14 @@ export default function EmployeeHomePage() {
         <div className="grid content-start gap-4">
           <FadeIn delay={60}>
             <SectionCard
-              title="My Alerts"
+              title="Alerts"
               action={
                 <Link href="/employee/alerts" className="text-xs font-medium text-(--brand) hover:underline">
                   View all
                 </Link>
               }
             >
-              {alerts.length === 0 ? (
-                <EmptyState icon={BellOff} title="No alerts." description="You have no fatigue or attendance alerts." />
-              ) : (
-                <ul className="divide-y divide-slate-100">
-                  {alerts.slice(0, 5).map((al) => (
-                    <li key={al.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                      <span className="min-w-0 truncate text-slate-700">{al.message || al.alert_type}</span>
-                      <RiskBadge level={al.risk_level} />
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <p className="text-sm text-slate-600">{alerts.filter((alert) => !alert.acknowledged).length} open alerts</p>
             </SectionCard>
           </FadeIn>
 
