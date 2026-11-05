@@ -15,6 +15,10 @@ import {
   ClipboardList,
   BellOff,
   Watch,
+  HeartPulse,
+  Activity,
+  Thermometer,
+  Gauge,
   Clock,
   Bell,
   BadgeCheck,
@@ -22,20 +26,18 @@ import {
   UserRound,
   ArrowRight,
   BarChart3,
-  CalendarDays,
-  ShieldAlert,
 } from "lucide-react"
 import { SectionCard, EmptyState, RiskBadge, Badge, LoadErrorState } from "@/components/app/primitives"
 import { ClockInCard } from "@/components/app/clock-in-card"
-import { FadeIn, CountUp } from "@/components/app/motion"
+import { FadeIn } from "@/components/app/motion"
 import { RevealText } from "@/components/reveal-text"
 import { useNow } from "@/hooks/use-live-vitals"
+import { getMyLiveWatchReading, type LiveWatchReading } from "@/lib/supabase/device-dashboard"
 import {
   getMyEmployee,
   listDevices,
   listMyAlerts,
   listMyAttendance,
-  myHoursSummary,
   subscribeTable,
   type AttendanceRow,
   type DeviceRow,
@@ -67,26 +69,30 @@ const QUICK_LINKS = [
 
 export default function EmployeeHomePage() {
   const now = useNow(60000)
-  const [hours, setHours] = useState({ today: 0, week: 0, month: 0 })
   const [attendance, setAttendance] = useState<AttendanceRow[]>([])
   const [alerts, setAlerts] = useState<FatigueAlertRow[]>([])
   const [device, setDevice] = useState<DeviceRow | null>(null)
+  const [watchReading, setWatchReading] = useState<LiveWatchReading | null>(null)
+  const [watchError, setWatchError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
   const load = useCallback(() => {
     void Promise.all([
-        myHoursSummary(),
         listMyAttendance(30),
         listMyAlerts(),
         getMyEmployee(),
       ])
-      .then(async ([nextHours, nextAttendance, nextAlerts, employee]) => {
+      .then(async ([nextAttendance, nextAlerts, employee]) => {
         const devices = employee ? await listDevices() : []
-        setHours(nextHours)
+        const nextDevice = devices.find((d) => d.employee_id === employee?.id) ?? null
         setAttendance(nextAttendance)
         setAlerts(nextAlerts)
-        setDevice(devices.find((d) => d.employee_id === employee?.id) ?? null)
+        setDevice(nextDevice)
+        if (!nextDevice) {
+          setWatchReading(null)
+          setWatchError(null)
+        }
         setLoadError(null)
       })
       .catch(() => setLoadError("Your dashboard data could not be loaded. Check your connection and retry."))
@@ -105,7 +111,34 @@ export default function EmployeeHomePage() {
     }
   }, [load])
 
-  const openAlerts = alerts.filter((a) => !a.acknowledged)
+  const deviceId = device?.device_id
+
+  useEffect(() => {
+    if (!deviceId) return
+    const assignedDeviceId = deviceId
+    let active = true
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    async function refreshWatch() {
+      try {
+        const reading = await getMyLiveWatchReading(assignedDeviceId)
+        if (active) {
+          setWatchReading(reading)
+          setWatchError(null)
+        }
+      } catch (error) {
+        if (active) setWatchError(error instanceof Error ? error.message : "Live watch data is unavailable.")
+      } finally {
+        if (active) timer = setTimeout(refreshWatch, 3000)
+      }
+    }
+
+    void refreshWatch()
+    return () => {
+      active = false
+      if (timer) clearTimeout(timer)
+    }
+  }, [deviceId])
 
   const hoursChart = useMemo(() => {
     const days: { label: string; hours: number }[] = []
@@ -128,10 +161,10 @@ export default function EmployeeHomePage() {
   const hasHours = hoursChart.some((d) => d.hours > 0)
 
   const metrics = [
-    { label: "Hours Today", value: hours.today, icon: Clock, decimals: 1, suffix: "h" },
-    { label: "This Week", value: hours.week, icon: CalendarDays, decimals: 1, suffix: "h" },
-    { label: "This Month", value: hours.month, icon: BarChart3, decimals: 1, suffix: "h" },
-    { label: "Open Alerts", value: openAlerts.length, icon: ShieldAlert, decimals: 0, suffix: "" },
+    { label: "Heart rate", value: watchReading?.heartRate ?? null, unit: " bpm", icon: HeartPulse },
+    { label: "Calibration", value: watchReading?.calibration ?? null, unit: "", icon: Activity },
+    { label: "Temperature", value: watchReading?.temperature ?? null, unit: " °C", icon: Thermometer },
+    { label: "Device score", value: watchReading?.score ?? null, unit: "", icon: Gauge },
   ]
 
   if (loading) return <p role="status" className="py-16 text-center text-sm text-slate-500">Loading your dashboard…</p>
@@ -203,13 +236,22 @@ export default function EmployeeHomePage() {
                   <tile.icon className="h-4 w-4" />
                 </span>
               </div>
-              <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
-                <CountUp value={tile.value} decimals={tile.decimals} suffix={tile.suffix} />
+              <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 tabular-nums">
+                {tile.value == null ? "—" : `${tile.value}${tile.unit}`}
               </div>
             </div>
           </FadeIn>
         ))}
       </div>
+      {watchError ? (
+        <p role="status" className="mt-3 text-sm text-amber-700">Live watch data is unavailable: {watchError}</p>
+      ) : !device ? (
+        <p role="status" className="mt-3 text-sm text-slate-500">No watch is assigned to your account.</p>
+      ) : !watchReading ? (
+        <p role="status" className="mt-3 text-sm text-slate-500">Waiting for a reading from your assigned watch.</p>
+      ) : watchReading.status ? (
+        <p role="status" className="mt-3 text-sm text-slate-500">Watch status: {watchReading.status}</p>
+      ) : null}
 
       {/* ── Main grid ───────────────────────────────────────────────────── */}
       <div className="mt-6 grid gap-4 lg:grid-cols-3">

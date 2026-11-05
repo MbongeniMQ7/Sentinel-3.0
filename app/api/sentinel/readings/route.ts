@@ -43,26 +43,46 @@ export async function GET(request: Request) {
 
   const { data: profile, error: profileError } = await userClient
     .from("profiles")
-    .select("role")
+    .select("role, organization_id")
     .eq("id", user.id)
     .maybeSingle()
   if (profileError) {
     console.error("Could not verify Sentinel dashboard access:", profileError.message)
     return NextResponse.json({ error: "Could not verify your account permissions." }, { status: 502 })
   }
-  if (profile?.role !== "manager" && profile?.role !== "owner") {
-    return NextResponse.json({ error: "Manager access is required." }, { status: 403 })
+  if (!profile || !["manager", "owner", "employee"].includes(profile.role ?? "")) {
+    return NextResponse.json({ error: "Workspace access is required." }, { status: 403 })
   }
 
-  const { data: devices, error: devicesError } = await userClient.from("devices").select("device_id")
+  let devicesQuery = userClient
+    .from("devices")
+    .select("device_id")
+    .eq("organization_id", profile.organization_id)
+
+  if (profile.role === "employee") {
+    const { data: employee, error: employeeError } = await userClient
+      .from("employees")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("organization_id", profile.organization_id)
+      .maybeSingle()
+    if (employeeError) {
+      console.error("Could not verify the employee's registered watch:", employeeError.message)
+      return NextResponse.json({ error: "Could not verify your assigned watch." }, { status: 502 })
+    }
+    if (!employee) return NextResponse.json({ readings: {} }, { headers: { "Cache-Control": "no-store, max-age=0" } })
+    devicesQuery = devicesQuery.eq("employee_id", employee.id)
+  }
+
+  const { data: devices, error: devicesError } = await devicesQuery
   if (devicesError) {
     console.error("Could not load organization devices for Sentinel readings:", devicesError.message)
     return NextResponse.json({ error: "Could not load your registered devices." }, { status: 502 })
   }
 
   const allowedDeviceIds = new Set((devices ?? []).map((device) => device.device_id.toLowerCase()))
-  const dashboardUrl = process.env.SENTINEL_DASHBOARD_API_URL
-  const dashboardApiKey = process.env.SENTINEL_DASHBOARD_API_KEY
+  const dashboardUrl = process.env.SENTINEL_DASHBOARD_API_URL ?? process.env.DEVICE_DASHBOARD_API_URL
+  const dashboardApiKey = process.env.SENTINEL_DASHBOARD_API_KEY ?? process.env.DEVICE_DASHBOARD_API_KEY
   if (!dashboardUrl || !dashboardApiKey) {
     return NextResponse.json({ error: "Sentinel dashboard API is not configured on the server." }, { status: 503 })
   }

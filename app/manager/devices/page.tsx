@@ -1,13 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-<<<<<<< HEAD
-import { Watch, Plus, Search } from "lucide-react"
-import { PageHeader, DataTable, EmptyState, Badge, LoadErrorState } from "@/components/app/primitives"
-=======
 import { Watch, Plus, Search, Activity, RefreshCw } from "lucide-react"
-import { PageHeader, DataTable, EmptyState, Badge, SectionCard } from "@/components/app/primitives"
->>>>>>> c6cf32c (feat: Device connection via api endpoint)
+import { PageHeader, DataTable, EmptyState, Badge, LoadErrorState, SectionCard } from "@/components/app/primitives"
 import { Button, Input, Select, Field } from "@/components/app/controls"
 import { Modal } from "@/components/app/modal"
 import { Toast } from "@/components/app/toast"
@@ -34,14 +29,11 @@ export default function ManagerDevicesPage() {
   const [sites, setSites] = useState<Site[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-<<<<<<< HEAD
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
-=======
   const [sentinelReadings, setSentinelReadings] = useState<SentinelReadingsResponse["readings"]>({})
   const [sentinelError, setSentinelError] = useState<string | null>(null)
   const [sentinelLoading, setSentinelLoading] = useState(true)
->>>>>>> c6cf32c (feat: Device connection via api endpoint)
   const now = useNow(1000)
 
   const load = useCallback(() => {
