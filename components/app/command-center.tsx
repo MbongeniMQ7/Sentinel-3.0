@@ -421,6 +421,7 @@ export function CommandCenter() {
                 deviceId={m.device_id}
                 connected={m.connection_status === "connected"}
                 size="sm"
+                accentColor="#38bdf8"
               />
               <span className="mt-2 flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] text-white/50">
                 <span className="inline-flex items-center gap-1.5 capitalize">

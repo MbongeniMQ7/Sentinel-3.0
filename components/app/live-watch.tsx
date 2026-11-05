@@ -169,7 +169,8 @@ export function LiveWatch({
 }) {
   const live = useLiveVitals(base)
   const risk: Risk = riskLevel ?? "low"
-  const color = connected ? accentColor ?? RISK_COLOR[risk] : "#64748b"
+  const riskColor = connected ? RISK_COLOR[risk] : "#64748b"
+  const color = connected ? accentColor ?? riskColor : "#64748b"
   const hr = live.heart_rate ?? base?.heart_rate ?? null
   const hrv = live.hrv ?? base?.hrv ?? null
   const temp = live.skin_temperature ?? base?.skin_temperature ?? null
@@ -220,7 +221,7 @@ export function LiveWatch({
               cy="55"
               r={R}
               fill="none"
-              stroke={color}
+              stroke={riskColor}
               strokeWidth="9"
               strokeLinecap="round"
               strokeDasharray={`${dash} ${C}`}
@@ -250,9 +251,9 @@ export function LiveWatch({
             <span className="tabular-nums">HRV {connected ? hrv ?? "—" : "—"}</span>
             <span
               className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide"
-              style={{ color, background: `${color}22` }}
+              style={{ color: riskColor, background: `${riskColor}22` }}
             >
-              <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: riskColor }} />
               {connected ? risk : "offline"}
             </span>
             <span className="tabular-nums">{connected ? (temp != null ? `${temp}°` : "—") : "—"}</span>

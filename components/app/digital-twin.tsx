@@ -106,6 +106,7 @@ export function DigitalTwin({ member, onClose }: { member: FleetMember; onClose:
               fatigueScore={member.fatigue_score}
               connected={connected}
               size="md"
+              accentColor="#38bdf8"
             />
           </div>
 

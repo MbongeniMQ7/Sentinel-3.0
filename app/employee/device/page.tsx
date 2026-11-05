@@ -180,6 +180,7 @@ export default function EmployeeDevicePage() {
                   fatigueScore={assessment?.fatigue_score}
                   connected={streaming}
                   size="md"
+                  accentColor="#38bdf8"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
