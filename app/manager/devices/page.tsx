@@ -1,11 +1,18 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+<<<<<<< HEAD
 import { Watch, Plus, Search } from "lucide-react"
 import { PageHeader, DataTable, EmptyState, Badge, LoadErrorState } from "@/components/app/primitives"
+=======
+import { Watch, Plus, Search, Activity, RefreshCw } from "lucide-react"
+import { PageHeader, DataTable, EmptyState, Badge, SectionCard } from "@/components/app/primitives"
+>>>>>>> c6cf32c (feat: Device connection via api endpoint)
 import { Button, Input, Select, Field } from "@/components/app/controls"
 import { Modal } from "@/components/app/modal"
 import { Toast } from "@/components/app/toast"
+import { supabase } from "@/lib/supabase/client"
+import type { SentinelReadingsResponse } from "@/lib/sentinel"
 import {
   createDevice,
   listDevices,
@@ -27,8 +34,14 @@ export default function ManagerDevicesPage() {
   const [sites, setSites] = useState<Site[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+<<<<<<< HEAD
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+=======
+  const [sentinelReadings, setSentinelReadings] = useState<SentinelReadingsResponse["readings"]>({})
+  const [sentinelError, setSentinelError] = useState<string | null>(null)
+  const [sentinelLoading, setSentinelLoading] = useState(true)
+>>>>>>> c6cf32c (feat: Device connection via api endpoint)
   const now = useNow(1000)
 
   const load = useCallback(() => {
@@ -48,10 +61,56 @@ export default function ManagerDevicesPage() {
     return subscribeTable("devices", load)
   }, [load])
 
+  useEffect(() => {
+    let active = true
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    async function refreshSentinelReadings() {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        if (sessionError) throw sessionError
+        if (!session?.access_token) throw new Error("Please sign in again to view live device readings.")
+
+        const response = await fetch("/api/sentinel/readings", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          cache: "no-store",
+        })
+        const result = await response.json() as SentinelReadingsResponse & { error?: string }
+        if (!response.ok) throw new Error(result.error || "Could not load live device readings.")
+        if (active) {
+          setSentinelReadings(result.readings)
+          setSentinelError(null)
+        }
+      } catch (err) {
+        if (active) setSentinelError(err instanceof Error ? err.message : "Could not load live device readings.")
+      } finally {
+        if (active) {
+          setSentinelLoading(false)
+          timer = setTimeout(refreshSentinelReadings, 3000)
+        }
+      }
+    }
+
+    void refreshSentinelReadings()
+    return () => {
+      active = false
+      clearTimeout(timer)
+    }
+  }, [])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return devices.filter((d) => !q || `${d.device_id} ${d.employee?.full_name ?? ""}`.toLowerCase().includes(q))
   }, [devices, query])
+
+  const liveReadings = useMemo(
+    () => Object.entries(sentinelReadings).sort(([a], [b]) => a.localeCompare(b)),
+    [sentinelReadings],
+  )
+  const devicesById = useMemo(
+    () => new Map(devices.map((device) => [device.device_id.toLowerCase(), device])),
+    [devices],
+  )
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -128,6 +187,56 @@ export default function ManagerDevicesPage() {
             : undefined
         }
       />
+
+      <SectionCard
+        title="Live Sentinel API readings"
+        description="Latest readings received by your deployed Sentinel dashboard. Refreshes every 3 seconds."
+        className="mt-6"
+        action={
+          sentinelLoading
+            ? <RefreshCw className="h-4 w-4 animate-spin text-slate-400" />
+            : <Badge tone={sentinelError ? "red" : "green"}>{sentinelError ? "API issue" : "Connected"}</Badge>
+        }
+      >
+        {sentinelError && (
+          <p role="alert" className="mb-4 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {sentinelError}
+          </p>
+        )}
+        {liveReadings.length ? (
+          <DataTable
+            columns={["Device ID", "Employee", "State", "Fatigue Score", "Heart Rate", "Temperature", "Calibration", "Last Report"]}
+            empty={<EmptyState title="No live readings yet." />}
+            rows={liveReadings.map(([deviceId, reading]) => {
+              const device = devicesById.get(deviceId.toLowerCase())
+              return (
+                <tr key={deviceId} className="border-b border-slate-50 last:border-0">
+                  <td className="px-4 py-3 font-medium text-slate-700">{deviceId}</td>
+                  <td className="px-4 py-3 text-slate-600">{device?.employee?.full_name || "Unassigned"}</td>
+                  <td className="px-4 py-3">
+                    <Badge tone={reading.status?.toLowerCase() === "normal" ? "green" : reading.status ? "amber" : "slate"}>
+                      {reading.status || "—"}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">{reading.score ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-600">{reading.bpm == null ? "—" : `${reading.bpm} bpm`}</td>
+                  <td className="px-4 py-3 text-slate-600">{reading.temp == null ? "—" : `${reading.temp} °C`}</td>
+                  <td className="px-4 py-3 text-slate-600">{reading.calibration ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-600">
+                    {reading.updated_at == null ? "—" : new Date(reading.updated_at * 1000).toLocaleTimeString()}
+                  </td>
+                </tr>
+              )
+            })}
+          />
+        ) : (
+          <EmptyState
+            icon={Activity}
+            title={sentinelLoading ? "Connecting to Sentinel API…" : "No live readings yet."}
+            description="Register the device in this workspace using the same device ID it reports to the Sentinel dashboard."
+          />
+        )}
+      </SectionCard>
 
       <Modal
         open={open}
