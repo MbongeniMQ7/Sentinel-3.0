@@ -112,7 +112,7 @@ export default function EmployeeHomePage() {
 
   const metrics = [
     { label: "Heart rate", value: watchReading?.heartRate ?? null, unit: " bpm", icon: HeartPulse },
-    { label: "Calibration", value: watchReading?.calibration ?? null, unit: "", icon: Activity },
+    { label: "RMSSD (HRV)", value: watchReading?.rmssd ?? null, unit: " ms", icon: Activity },
     { label: "Temperature", value: watchReading?.temperature ?? null, unit: " °C", icon: Thermometer },
     { label: "Device score", value: watchReading?.score ?? null, unit: "", icon: Gauge },
   ]

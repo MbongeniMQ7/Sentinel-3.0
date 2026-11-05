@@ -118,11 +118,14 @@ export async function GET(request: Request) {
   const readings: Record<string, SentinelReading> = {}
   for (const [deviceId, value] of Object.entries(upstreamData)) {
     if (!allowedDeviceIds.has(deviceId.toLowerCase()) || !isRecord(value)) continue
+    const rawData = isRecord(value.raw_data) ? value.raw_data : null
     readings[deviceId] = {
       status: optionalString(value.status),
       score: optionalNumber(value.score),
       bpm: optionalNumber(value.bpm),
       temp: optionalNumber(value.temp),
+      rmssd: optionalNumber(rawData?.rmssd ?? value.rmssd),
+      base_rmssd: optionalNumber(rawData?.base_rmssd ?? value.base_rmssd),
       calibration: optionalNumber(value.calibration),
       updated_at: optionalNumber(value.updated_at),
     }

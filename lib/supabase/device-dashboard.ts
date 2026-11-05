@@ -5,6 +5,8 @@ import type { SentinelReadingsResponse } from "@/lib/sentinel"
 
 export type LiveWatchReading = {
   heartRate: number | null
+  rmssd: number | null
+  baseRmssd: number | null
   temperature: number | null
   score: number | null
   calibration: number | null
@@ -46,6 +48,8 @@ export async function getMyLiveWatchReading(deviceId: string): Promise<LiveWatch
   const reading = entry[1]
   return {
     heartRate: reading.bpm,
+    rmssd: reading.rmssd,
+    baseRmssd: reading.base_rmssd,
     temperature: reading.temp,
     score: reading.score,
     calibration: reading.calibration,
