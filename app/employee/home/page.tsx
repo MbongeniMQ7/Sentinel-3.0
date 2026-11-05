@@ -42,7 +42,7 @@ import {
   type FatigueAlertRow,
 } from "@/lib/supabase/db"
 
-const EMERALD = "#059669"
+const BRAND_BLUE = "#0284c7"
 
 function greeting() {
   const h = new Date().getHours()
@@ -141,27 +141,27 @@ export default function EmployeeHomePage() {
     <>
       {/* ── Hero ────────────────────────────────────────────────────────── */}
       <FadeIn>
-        <div className="relative overflow-hidden rounded-2xl border border-emerald-900/30 bg-linear-to-br from-[#065f46] via-[#047857] to-[#059669] p-6 text-white sm:p-8">
-          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-emerald-300/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 right-24 h-48 w-48 rounded-full bg-teal-300/10 blur-3xl" />
+        <div className="relative overflow-hidden rounded-2xl border border-sky-900/30 bg-linear-to-br from-[#0f2a4a] via-[#075985] to-[#0284c7] p-6 text-white sm:p-8">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-sky-300/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 right-24 h-48 w-48 rounded-full bg-cyan-300/10 blur-3xl" />
 
           <div className="relative flex flex-col gap-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-emerald-50 ring-1 ring-inset ring-white/20">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-sky-50 ring-1 ring-inset ring-white/20">
                   <BadgeCheck className="h-3.5 w-3.5" /> Employee workspace
                 </span>
                 <RevealText as="h1" className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
                   {greeting()}
                 </RevealText>
-                <p className="mt-1.5 max-w-xl text-sm text-emerald-50/80">
+                <p className="mt-1.5 max-w-xl text-sm text-sky-50/80">
                   Your shift at a glance — track your hours, attendance, wellbeing alerts and wristband from one place.
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-2">
                 <Link href="/employee/attendance">
-                  <button className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-4 text-sm font-medium text-[#065f46] transition-colors hover:bg-emerald-50">
+                  <button className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-4 text-sm font-medium text-[#075985] transition-colors hover:bg-sky-50">
                     <ClipboardList className="h-4 w-4" /> My Attendance
                   </button>
                 </Link>
@@ -179,7 +179,7 @@ export default function EmployeeHomePage() {
                 <FadeIn key={p.label} delay={120 + i * 60} y={8}>
                   <Link
                     href={p.href}
-                    className="group inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-emerald-50 ring-1 ring-inset ring-white/15 transition-colors hover:bg-white/20"
+                    className="group inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-sky-50 ring-1 ring-inset ring-white/15 transition-colors hover:bg-white/20"
                   >
                     <p.icon className="h-3.5 w-3.5" />
                     {p.label}
@@ -196,10 +196,10 @@ export default function EmployeeHomePage() {
       <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {metrics.map((tile, i) => (
           <FadeIn key={tile.label} delay={i * 70} y={14}>
-            <div className="group h-full rounded-xl border border-slate-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-sm">
+            <div className="group h-full rounded-xl border border-slate-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium uppercase tracking-wide text-slate-500">{tile.label}</span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-100">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-50 text-sky-700 transition-colors group-hover:bg-sky-100">
                   <tile.icon className="h-4 w-4" />
                 </span>
               </div>
@@ -226,15 +226,15 @@ export default function EmployeeHomePage() {
                   <AreaChart data={hoursChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="empHomeHoursFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={EMERALD} stopOpacity={0.28} />
-                        <stop offset="100%" stopColor={EMERALD} stopOpacity={0} />
+                        <stop offset="0%" stopColor={BRAND_BLUE} stopOpacity={0.28} />
+                        <stop offset="100%" stopColor={BRAND_BLUE} stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#eef1f5" vertical={false} />
                     <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                     <Tooltip />
-                    <Area type="monotone" dataKey="hours" stroke={EMERALD} strokeWidth={2} fill="url(#empHomeHoursFill)" />
+                    <Area type="monotone" dataKey="hours" stroke={BRAND_BLUE} strokeWidth={2} fill="url(#empHomeHoursFill)" />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
@@ -310,8 +310,8 @@ export default function EmployeeHomePage() {
             >
               {device ? (
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
-                    <Watch className="h-5 w-5 text-emerald-600" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50">
+                    <Watch className="h-5 w-5 text-sky-700" />
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-slate-900">{device.device_id}</p>

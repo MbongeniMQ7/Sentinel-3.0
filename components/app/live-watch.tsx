@@ -156,6 +156,7 @@ export function LiveWatch({
   deviceId,
   connected = true,
   size = "md",
+  accentColor,
 }: {
   base: BiometricRow | null
   riskLevel?: Risk | null
@@ -164,10 +165,11 @@ export function LiveWatch({
   deviceId?: string | null
   connected?: boolean
   size?: "sm" | "md" | "lg"
+  accentColor?: string
 }) {
   const live = useLiveVitals(base)
   const risk: Risk = riskLevel ?? "low"
-  const color = connected ? RISK_COLOR[risk] : "#64748b"
+  const color = connected ? accentColor ?? RISK_COLOR[risk] : "#64748b"
   const hr = live.heart_rate ?? base?.heart_rate ?? null
   const hrv = live.hrv ?? base?.hrv ?? null
   const temp = live.skin_temperature ?? base?.skin_temperature ?? null

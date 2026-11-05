@@ -19,7 +19,7 @@ import { FadeIn } from "@/components/app/motion"
 import { useNow } from "@/hooks/use-live-vitals"
 import { myHoursSummary, listMyAttendance, subscribeTable, type AttendanceRow } from "@/lib/supabase/db"
 
-const EMERALD = "#059669"
+const BRAND_BLUE = "#0284c7"
 const AMBER = "#f59e0b"
 
 function fmt(h: number) {
@@ -93,15 +93,15 @@ export default function EmployeeHoursPage() {
                 <AreaChart data={trend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="empHoursFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={EMERALD} stopOpacity={0.28} />
-                      <stop offset="100%" stopColor={EMERALD} stopOpacity={0} />
+                      <stop offset="0%" stopColor={BRAND_BLUE} stopOpacity={0.28} />
+                      <stop offset="100%" stopColor={BRAND_BLUE} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#eef1f5" vertical={false} />
                   <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                   <Tooltip />
-                  <Area type="monotone" dataKey="hours" stroke={EMERALD} strokeWidth={2} fill="url(#empHoursFill)" />
+                  <Area type="monotone" dataKey="hours" stroke={BRAND_BLUE} strokeWidth={2} fill="url(#empHoursFill)" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -120,7 +120,7 @@ export default function EmployeeHoursPage() {
                   <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                   <Tooltip />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="regular" name="Regular" stackId="h" fill={EMERALD} radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="regular" name="Regular" stackId="h" fill={BRAND_BLUE} radius={[0, 0, 0, 0]} />
                   <Bar dataKey="overtime" name="Overtime" stackId="h" fill={AMBER} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

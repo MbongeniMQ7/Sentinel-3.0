@@ -122,7 +122,7 @@ export default function EmployeeAttendancePage() {
 
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4 border-y border-slate-200 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700"><BarChart3 className="h-5 w-5" /></div>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700"><BarChart3 className="h-5 w-5" /></div>
           <div>
             <h2 className="text-sm font-semibold text-slate-900">Attendance overview</h2>
             <p className="text-xs text-slate-500">Latest 90 records{!loading && !error && rows.length ? ` · ${dateLabel(rows[rows.length - 1].date)} – ${dateLabel(rows[0].date)}` : ""}</p>

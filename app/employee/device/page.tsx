@@ -18,7 +18,7 @@ import {
 } from "@/lib/supabase/db"
 import { useLiveVitals, useNow, timeAgo } from "@/hooks/use-live-vitals"
 
-const EMERALD = "#059669"
+const BRAND_BLUE = "#0284c7"
 
 function LivePulse() {
   return (
@@ -129,8 +129,8 @@ export default function EmployeeDevicePage() {
         {device ? (
           <div>
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
-                <Watch className="h-6 w-6 text-emerald-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50">
+                <Watch className="h-6 w-6 text-sky-700" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-900">{device.device_id}</p>
@@ -173,7 +173,7 @@ export default function EmployeeDevicePage() {
         >
           {latest ? (
             <div className="grid items-center gap-6 sm:grid-cols-[auto_1fr]">
-              <div className="flex justify-center rounded-2xl bg-slate-950/[0.03] p-4">
+              <div className="flex justify-center rounded-2xl bg-slate-950/3 p-4">
                 <LiveWatch
                   base={latest}
                   riskLevel={assessment?.risk_level ?? "low"}
@@ -209,7 +209,7 @@ export default function EmployeeDevicePage() {
               <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
               <Tooltip />
-              <Line type="monotone" dataKey="hr" name="HR (bpm)" stroke={EMERALD} strokeWidth={2} dot={{ r: 2 }} />
+              <Line type="monotone" dataKey="hr" name="HR (bpm)" stroke={BRAND_BLUE} strokeWidth={2} dot={{ r: 2 }} />
               <Line type="monotone" dataKey="hrv" name="HRV (ms)" stroke="#94a3b8" strokeWidth={1.5} dot={false} />
             </LineChart>
           </ResponsiveContainer>

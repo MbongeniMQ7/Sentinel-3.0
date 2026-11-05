@@ -23,6 +23,7 @@ export default function LoginPage() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [shake, setShake] = useState(false)
   const inputs = useRef<(HTMLInputElement | null)[]>([])
+  const verificationInFlight = useRef(false)
 
   const code = digits.join("")
   const complete = code.length === 6
@@ -63,17 +64,19 @@ export default function LoginPage() {
     }
   }
 
-  async function verify(e?: React.FormEvent) {
+  async function verify(e?: React.FormEvent, codeToVerify = code) {
     e?.preventDefault()
+    if (verificationInFlight.current) return
     setError("")
-    if (code.length !== 6) {
+    if (codeToVerify.length !== 6) {
       setError("Enter the 6-digit code")
       return
     }
+    verificationInFlight.current = true
     setLoading(true)
     try {
     const { data, error: fnError } = await supabase.functions.invoke("verify-otp", {
-      body: { email: email.trim().toLowerCase(), code },
+      body: { email: email.trim().toLowerCase(), code: codeToVerify },
     })
     if (fnError || !data?.ok || !data?.token_hash) {
       setLoading(false)
@@ -94,6 +97,7 @@ export default function LoginPage() {
       setError(error instanceof Error ? error.message : "Could not complete sign-in. Please try again.")
     } finally {
       setLoading(false)
+      verificationInFlight.current = false
     }
   }
 
@@ -103,19 +107,19 @@ export default function LoginPage() {
       setDigits((d) => d.map((x, idx) => (idx === i ? "" : x)))
       return
     }
-    setDigits((d) => {
-      const next = [...d]
-      if (clean.length > 1) {
-        for (let k = 0; k < clean.length && i + k < 6; k++) next[i + k] = clean[k]
-      } else {
-        next[i] = clean
-      }
-      return next
-    })
+    const next = [...digits]
+    if (clean.length > 1) {
+      for (let k = 0; k < clean.length && i + k < 6; k++) next[i + k] = clean[k]
+    } else {
+      next[i] = clean
+    }
+    setDigits(next)
     const jump = Math.min(i + clean.length, 5)
     setPoppedIndex(i)
     setTimeout(() => setPoppedIndex(null), 180)
     inputs.current[jump]?.focus()
+    const nextCode = next.join("")
+    if (nextCode.length === 6) void verify(undefined, nextCode)
   }
 
   function onKeyDown(i: number, e: React.KeyboardEvent<HTMLInputElement>) {
@@ -247,6 +251,7 @@ export default function LoginPage() {
                       autoComplete={i === 0 ? "one-time-code" : "off"}
                       maxLength={6}
                       value={d}
+                      disabled={loading}
                       onChange={(e) => setDigit(i, e.target.value)}
                       onKeyDown={(e) => onKeyDown(i, e)}
                       onFocus={() => setActiveIndex(i)}
@@ -297,7 +302,7 @@ export default function LoginPage() {
                 disabled={loading}
                 className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-medium tracking-widest text-white transition-colors hover:bg-[#333] disabled:opacity-60"
               >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "VERIFY & SIGN IN"}
+                {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying…</> : "VERIFY & SIGN IN"}
                 {!loading && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
               </button>
 

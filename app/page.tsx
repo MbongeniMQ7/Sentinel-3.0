@@ -46,7 +46,7 @@ function HeroWatch() {
           transition: "transform 0.15s ease-out",
         }}
       >
-        <LiveWatch base={HERO_READING} riskLevel="low" fatigueScore={28} connected size="lg" />
+        <LiveWatch base={HERO_READING} riskLevel="low" fatigueScore={28} connected size="lg" accentColor="#38bdf8" />
       </div>
     </div>
   )

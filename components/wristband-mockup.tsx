@@ -37,7 +37,7 @@ export function WristbandMockup() {
           <polyline
             points="166,206 178,206 184,206 190,192 196,222 202,180 208,222 214,206 224,206 234,206"
             fill="none"
-            stroke="#10b981"
+            stroke="#38bdf8"
             strokeWidth="2.5"
             strokeLinejoin="round"
             strokeLinecap="round"
@@ -51,15 +51,15 @@ export function WristbandMockup() {
 
         {/* Broadcasting signal rings from the watch */}
         {[0, 1, 2].map((i) => (
-          <circle key={i} cx="232" cy="150" r="30" fill="none" stroke="#10b981" strokeWidth="1.5">
+          <circle key={i} cx="232" cy="150" r="30" fill="none" stroke="#38bdf8" strokeWidth="1.5">
             <animate attributeName="r" values="24;90" dur="3s" begin={`${i}s`} repeatCount="indefinite" />
             <animate attributeName="opacity" values="0.5;0" dur="3s" begin={`${i}s`} repeatCount="indefinite" />
           </circle>
         ))}
       </svg>
 
-      <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" /> Streaming
+      <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-sky-400/30 bg-sky-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-sky-300">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sky-300" /> Streaming
       </span>
     </div>
   )
