@@ -284,7 +284,10 @@ export default function OwnerDashboard() {
                 <li key={a.id} className="flex items-start justify-between gap-3 py-2.5">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-slate-800">{a.employee?.full_name || a.alert_type}</p>
-                    <p className="truncate text-xs text-slate-400">{a.message || a.alert_type}</p>
+                    <p className="truncate text-xs text-slate-400">
+                      {a.is_sample && <span className="mr-1.5 inline-flex rounded bg-amber-100 px-1.5 py-0.5 font-medium text-amber-800">Sample</span>}
+                      {a.message || a.alert_type}
+                    </p>
                   </div>
                   <RiskBadge level={a.risk_level} />
                 </li>

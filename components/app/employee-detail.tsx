@@ -413,7 +413,10 @@ export function EmployeeDetail({ employeeId, backHref }: { employeeId: string; b
                 {alerts.slice(0, 10).map((a) => (
                   <li key={a.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                     <div className="min-w-0">
-                      <p className="truncate text-slate-700">{a.message || a.alert_type}</p>
+                      <p className="flex flex-wrap items-center gap-2 text-slate-700">
+                        {a.is_sample && <Badge tone="amber">Sample</Badge>}
+                        {a.message || a.alert_type}
+                      </p>
                       <p className="text-xs text-slate-400">{new Date(a.created_at).toLocaleString()}</p>
                     </div>
                     <RiskBadge level={a.risk_level} />

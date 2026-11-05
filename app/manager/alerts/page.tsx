@@ -51,7 +51,10 @@ export default function ManagerAlertsPage() {
             {filtered.map((a) => (
               <li key={a.id} className="flex items-start justify-between gap-3 py-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-800">{a.message || a.alert_type}</p>
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-800">
+                    {a.is_sample && <Badge tone="amber">Sample</Badge>}
+                    {a.message || a.alert_type}
+                  </p>
                   <p className="mt-0.5 text-xs text-slate-400">
                     {a.employee?.full_name ? `${a.employee.full_name} · ` : ""}
                     {new Date(a.created_at).toLocaleString()}

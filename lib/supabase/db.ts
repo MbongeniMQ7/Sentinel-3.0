@@ -90,6 +90,7 @@ export type FatigueAlertRow = {
   message: string | null
   severity: "info" | "warning" | "critical"
   acknowledged: boolean
+  is_sample: boolean
   created_at: string
   employee?: { full_name: string | null } | null
 }
@@ -522,7 +523,7 @@ export async function listEmployeeAssessments(employeeId: string, days = 7): Pro
 export async function listEmployeeAlerts(employeeId: string): Promise<FatigueAlertRow[]> {
   const { data } = await supabase
     .from("fatigue_alerts")
-    .select("id, alert_type, risk_level, message, severity, acknowledged, created_at")
+    .select("id, alert_type, risk_level, message, severity, acknowledged, is_sample, created_at")
     .eq("employee_id", employeeId)
     .order("created_at", { ascending: false })
     .limit(50)
@@ -682,7 +683,7 @@ export async function updateMyProfile(input: { first_name?: string; last_name?: 
 export async function listFatigueAlerts(): Promise<FatigueAlertRow[]> {
   const { data, error } = await supabase
     .from("fatigue_alerts")
-    .select("id, alert_type, risk_level, message, severity, acknowledged, created_at, employee:employees(full_name)")
+    .select("id, alert_type, risk_level, message, severity, acknowledged, is_sample, created_at, employee:employees(full_name)")
     .order("created_at", { ascending: false })
     .limit(100)
   if (error) throw error
@@ -694,7 +695,7 @@ export async function listMyAlerts(): Promise<FatigueAlertRow[]> {
   if (!emp) return []
   const { data, error } = await supabase
     .from("fatigue_alerts")
-    .select("id, alert_type, risk_level, message, severity, acknowledged, created_at")
+    .select("id, alert_type, risk_level, message, severity, acknowledged, is_sample, created_at")
     .eq("employee_id", emp.id)
     .order("created_at", { ascending: false })
   if (error) throw error

@@ -228,7 +228,10 @@ export default function EmployeeHomePage() {
                   {alerts.slice(0, 6).map((alert) => (
                     <li key={alert.id} className="flex items-start justify-between gap-3 py-3">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-800">{alert.message || alert.alert_type}</p>
+                        <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-800">
+                          {alert.is_sample && <Badge tone="amber">Sample</Badge>}
+                          {alert.message || alert.alert_type}
+                        </p>
                         <p className="mt-0.5 text-xs text-slate-400">{new Date(alert.created_at).toLocaleString()}</p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
