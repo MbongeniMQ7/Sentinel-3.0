@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils"
 import { EMPLOYEE_NAV } from "./nav-config"
 import { BrandPulse } from "./brand-pulse"
 import { useAuth } from "@/lib/supabase/use-auth"
-import { SampleDataNotice } from "./sample-data-notice"
 
 export function EmployeeShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -135,7 +134,6 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
           <nav aria-label="Personal insights" className="mb-4 flex flex-wrap gap-3 lg:hidden">
             {EMPLOYEE_NAV.slice(5).map(item => <Link key={item.href} href={item.href} className={cn("inline-flex items-center gap-1.5 py-2 text-sm", pathname === item.href ? "font-semibold text-(--brand)" : "text-slate-600")}><item.icon className="h-4 w-4" />{item.label}</Link>)}
           </nav>
-          <SampleDataNotice personal />
           <div key={pathname} className="page-in">{children}</div>
         </main>
       </div>

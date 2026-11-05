@@ -80,6 +80,7 @@ export type AttendanceRow = {
   overtime_hours: number
   late_minutes: number
   correction_requested: boolean
+  is_sample: boolean
   employee?: { full_name: string | null; email: string | null } | null
 }
 

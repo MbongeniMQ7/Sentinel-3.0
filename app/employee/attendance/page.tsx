@@ -228,7 +228,12 @@ export default function EmployeeAttendancePage() {
           filtered.length
             ? filtered.map((a) => (
                 <tr key={a.id} className="border-b border-slate-50 transition-colors last:border-0 hover:bg-slate-50/80">
-                  <td className="px-4 py-3 font-medium text-slate-700">{new Date(`${a.date}T12:00:00`).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 font-medium text-slate-700">
+                    <span className="inline-flex flex-wrap items-center gap-2">
+                      {new Date(`${a.date}T12:00:00`).toLocaleDateString()}
+                      {a.is_sample && <Badge tone="amber">Sample</Badge>}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-slate-600">{time(a.clock_in_time)}</td>
                   <td className="px-4 py-3 text-slate-600">{time(a.clock_out_time)}</td>
                   <td className="px-4 py-3 text-slate-600">{Number(a.hours_worked || 0).toFixed(2)}</td>
