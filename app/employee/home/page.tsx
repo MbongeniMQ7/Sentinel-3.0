@@ -30,11 +30,11 @@ import {
   type FatigueAlertRow,
 } from "@/lib/supabase/db"
 
-function greeting() {
+function greeting(name: string | null) {
   const h = new Date().getHours()
-  if (h < 12) return "Good morning"
-  if (h < 18) return "Good afternoon"
-  return "Good evening"
+  const salutation = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"
+  const firstName = name?.trim().split(/\s+/)[0]
+  return firstName ? `${salutation}, ${firstName}` : salutation
 }
 
 // Employee quick links, mirroring the manager privilege pills.
@@ -47,6 +47,7 @@ const QUICK_LINKS = [
 
 export default function EmployeeHomePage() {
   const [alerts, setAlerts] = useState<FatigueAlertRow[]>([])
+  const [employeeName, setEmployeeName] = useState<string | null>(null)
   const [device, setDevice] = useState<DeviceRow | null>(null)
   const [watchReading, setWatchReading] = useState<LiveWatchReading | null>(null)
   const [watchError, setWatchError] = useState<string | null>(null)
@@ -59,6 +60,7 @@ export default function EmployeeHomePage() {
         const devices = employee ? await listDevices() : []
         const nextDevice = devices.find((d) => d.employee_id === employee?.id) ?? null
         setAlerts(nextAlerts)
+        setEmployeeName(employee?.full_name ?? null)
         setDevice(nextDevice)
         if (!nextDevice) {
           setWatchReading(null)
@@ -133,7 +135,7 @@ export default function EmployeeHomePage() {
                   <BadgeCheck className="h-3.5 w-3.5" /> Employee workspace
                 </span>
                 <RevealText as="h1" className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-                  {greeting()}
+                  {greeting(employeeName)}
                 </RevealText>
                 <p className="mt-1.5 max-w-xl text-sm text-sky-50/80">
                   Your assigned watch, wellbeing alerts, and shift activity in one place.
