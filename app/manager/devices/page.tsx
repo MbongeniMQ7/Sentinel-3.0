@@ -147,43 +147,10 @@ export default function ManagerDevicesPage() {
         </div>
       </div>
 
-      <DataTable
-        columns={["Device ID", "Employee", "Connection", "Battery", "Last Sync"]}
-        empty={
-          <EmptyState
-            icon={Watch}
-            title="No devices registered."
-            description="Register a wristband to start capturing biometric signals."
-            action={
-              <Button size="sm" onClick={() => setOpen(true)}>
-                <Plus className="h-4 w-4" /> Add Device
-              </Button>
-            }
-          />
-        }
-        rows={
-          filtered.length
-            ? filtered.map((d) => (
-                <tr key={d.id} className="border-b border-slate-50 last:border-0">
-                  <td className="px-4 py-3 font-medium text-slate-700">{d.device_id}</td>
-                  <td className="px-4 py-3 text-slate-600">{d.employee?.full_name || "Unassigned"}</td>
-                  <td className="px-4 py-3">
-                    <Badge tone={d.connection_status === "connected" ? "green" : d.connection_status === "syncing" ? "amber" : "slate"}>
-                      {d.connection_status}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">{d.battery_level ?? "—"}%</td>
-                  <td className="px-4 py-3 text-slate-600">{timeAgo(d.last_sync_time, now)}</td>
-                </tr>
-              ))
-            : undefined
-        }
-      />
-
       <SectionCard
         title="Live Sentinel API readings"
         description="Latest readings received by your deployed Sentinel dashboard. Refreshes every 3 seconds."
-        className="mt-6"
+        className="mb-6"
         action={
           sentinelLoading
             ? <RefreshCw className="h-4 w-4 animate-spin text-slate-400" />
@@ -229,6 +196,39 @@ export default function ManagerDevicesPage() {
           />
         )}
       </SectionCard>
+
+      <DataTable
+        columns={["Device ID", "Employee", "Connection", "Battery", "Last Sync"]}
+        empty={
+          <EmptyState
+            icon={Watch}
+            title="No devices registered."
+            description="Register a wristband to start capturing biometric signals."
+            action={
+              <Button size="sm" onClick={() => setOpen(true)}>
+                <Plus className="h-4 w-4" /> Add Device
+              </Button>
+            }
+          />
+        }
+        rows={
+          filtered.length
+            ? filtered.map((d) => (
+                <tr key={d.id} className="border-b border-slate-50 last:border-0">
+                  <td className="px-4 py-3 font-medium text-slate-700">{d.device_id}</td>
+                  <td className="px-4 py-3 text-slate-600">{d.employee?.full_name || "Unassigned"}</td>
+                  <td className="px-4 py-3">
+                    <Badge tone={d.connection_status === "connected" ? "green" : d.connection_status === "syncing" ? "amber" : "slate"}>
+                      {d.connection_status}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">{d.battery_level ?? "—"}%</td>
+                  <td className="px-4 py-3 text-slate-600">{timeAgo(d.last_sync_time, now)}</td>
+                </tr>
+              ))
+            : undefined
+        }
+      />
 
       <Modal
         open={open}
